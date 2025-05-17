@@ -1,0 +1,84 @@
+---
+title: "RNCBIGene: NCBI Gene annotation in parquet"
+shorttitle: "NCBI Gene for all organisms"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{RNCBIGene: NCBI Gene annotation in parquet}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+# Introduction
+
+Bioconductor's annotation system has functioned for well
+over a decade as a pivotal resource for analysis and
+tool development.  See the [AnnotationDbi](https://bioconductor.org/packages/AnnotationDbi)
+documentation for details.  AnnotationDbi and packages based
+on it use SQLite to manage
+organism-specific vocabularies and to resolve queries about
+mappings between identifier sets.  For example,
+learn the Gene Ontology annotations for gene ORMDL3
+in _Homo sapiens_:
+
+```{r lkorg1, message=FALSE}
+library(org.Hs.eg.db)
+go_orm = AnnotationDbi::select(org.Hs.eg.db, key="ORMDL3", keytype="SYMBOL",
+    columns=c("GO", "ENTREZID"))
+head(go_orm)
+```
+
+With RNCBIGene, all NCBI's GO annotations for all organisms are in a
+single resource.  The `geneFromCache` package will retrieve
+the Apache Parquet representation of the gene2go.gz text
+resource distributed at NCBI's FTP site.  For this
+query, we use the knowledge the ORMDL3 has Gene ID 94103.
+
+```{r lknc1,message=FALSE}
+library(RNCBIGene)
+go_ds = arrow::open_dataset(geneFromCache("gene2go.parquet"))
+lkor = go_ds |> filter(`#tax_id`==9606, GeneID==94103) |> collect() |> as.data.frame()
+DT::datatable(lkor)
+```
+
+It is not the purpose of this package to provide pin-compatible
+replacements for the AnnotationDbi packages.  That would
+be a huge effort, and material support for such an
+effort does not exist at this
+time.  This package is created to indicate the opportunities
+for simplification and performance enhancement 
+arising from the adoption of Parquet and Arrow for annotation
+representation and interrogation.
+
+# Scope
+
+There are seven parquet files available through this package.
+```{r lksev}
+RNCBIGene:::available_gene_parquet
+```
+
+We can work with all of them "simultaneously".
+```{r lksim}
+paths = lapply(RNCBIGene:::available_gene_parquet, geneFromCache)
+pop = lapply(paths, arrow::open_dataset)
+names(pop) = RNCBIGene:::available_gene_parquet
+sapply(pop, function(x) x |> nrow())
+```
+
+Illustration: find the UniProt identifiers associated
+with gene ORMDL3 in humans.
+
+```{r lkuni}
+pro = pop[["gene2accession.parquet"]] |> 
+   filter(`#tax_id` == 9606, Symbol == "ORMDL3") |> 
+   select(protein_accession.version) |> collect() |> pull() |> setdiff("-")
+pop[["gene_refseq_uniprotkb_collab.parquet"]] |> filter(NCBI_tax_id == 9606) |> 
+   filter(`#NCBI_protein_accession` %in% pro)  |> collect()
+```
+
