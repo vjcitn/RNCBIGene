@@ -42,6 +42,7 @@ query, we use the knowledge the ORMDL3 has Gene ID 94103.
 
 ```{r lknc1,message=FALSE}
 library(RNCBIGene)
+library(dplyr)
 go_ds = arrow::open_dataset(geneFromCache("gene2go.parquet"))
 lkor = go_ds |> filter(`#tax_id`==9606, GeneID==94103) |> collect() |> as.data.frame()
 DT::datatable(lkor)
