@@ -35,7 +35,9 @@ gnFrmC> arrow::open_dataset(gi) |> dplyr::filter(`#tax_id`==9606) |> head() |> d
 
 # Available resources
 
-Contents of `https://mghp.osn.xsede.org/bir190004-bucket01/BiocParquetNCBI`:
+Contents of `https://mghp.osn.xsede.org/bir190004-bucket01/BiocParquetNCBI`,
+as retrieved on 22 Feb 2025 and then transformed to parquet (see inst/scripts
+for demonstration code):
 
 ```
 3002338275 2025-05-17 09:28:29.618223689 gene2accession.parquet
