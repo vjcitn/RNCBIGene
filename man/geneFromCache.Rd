@@ -20,6 +20,9 @@ populate cache with available parquet files if needed, return
 path to cached file
 }
 \examples{
+oldop = options()
+options(timeout=3600)
 gi = geneFromCache("gene_info.parquet")
+options(oldop)
 arrow::open_dataset(gi) |> dplyr::filter(`#tax_id`==9606) |> head() |> dplyr::collect()
 }
