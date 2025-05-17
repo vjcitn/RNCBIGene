@@ -19,6 +19,6 @@ License: Artistic-2.0
 VignetteBuilder: knitr
 biocViews: Infrastructure
 Encoding: UTF-8
-URL: https://github.com/vjcitn
-BugReports: https://github.com/vjcitn
+URL: https://github.com/vjcitn/RNCBIGene
+BugReports: https://github.com/vjcitn/RNCBIGene/issues
 RoxygenNote: 7.3.2
