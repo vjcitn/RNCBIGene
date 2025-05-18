@@ -33,6 +33,32 @@ gnFrmC> arrow::open_dataset(gi) |> dplyr::filter(`#tax_id`==9606) |> head() |> d
 #   Other_designations <chr>, Modification_date <int>, Feature_type <chr>
 ```
 
+Caching the resources involves transfers of 6GB of parquet; if this is
+too laborious, remote queries can be executed for specific queries.
+
+```
+> x = remote_gene_query(gres="gene_info", qual='where "#tax_id" = 9606 limit 10')
+> x
+# A tibble: 10 × 16
+   `#tax_id` GeneID Symbol   LocusTag Synonyms   dbXrefs chromosome map_location
+       <dbl>  <dbl> <chr>    <chr>    <chr>      <chr>   <chr>      <chr>       
+ 1      9606      1 A1BG     -        A1B|ABG|G… MIM:13… 19         19q13.43    
+ 2      9606      2 A2M      -        A2MD|CPAM… MIM:10… 12         12p13.31    
+ 3      9606      3 A2MP1    -        A2MP       HGNC:H… 12         12p13.31    
+ 4      9606      9 NAT1     -        AAC1|MNAT… MIM:10… 8          8p22        
+ 5      9606     10 NAT2     -        AAC2|NAT-… MIM:61… 8          8p22        
+ 6      9606     11 NATP     -        AACP|NATP1 HGNC:H… 8          8p22        
+ 7      9606     12 SERPINA3 -        AACT|ACT|… MIM:10… 14         14q32.13    
+ 8      9606     13 AADAC    -        CES5A1|DAC MIM:60… 3          3q25.1      
+ 9      9606     14 AAMP     -        -          MIM:60… 2          2q35        
+10      9606     15 AANAT    -        DSPS|SNAT  MIM:60… 17         17q25.1     
+# ℹ 8 more variables: description <chr>, type_of_gene <chr>,
+#   Symbol_from_nomenclature_authority <chr>,
+#   Full_name_from_nomenclature_authority <chr>, Nomenclature_status <chr>,
+#   Other_designations <chr>, Modification_date <dbl>, Feature_type <chr>
+```
+
+
 # Available resources
 
 Contents of `https://mghp.osn.xsede.org/bir190004-bucket01/BiocParquetNCBI`,

@@ -78,6 +78,27 @@ gnFrmC&gt; arrow::open_dataset(gi) |&gt; dplyr::filter(`#tax_id`==9606) |&gt; he
 #   Symbol_from_nomenclature_authority &lt;chr&gt;,
 #   Full_name_from_nomenclature_authority &lt;chr&gt;, Nomenclature_status &lt;chr&gt;,
 #   Other_designations &lt;chr&gt;, Modification_date &lt;int&gt;, Feature_type &lt;chr&gt;</code></pre>
+<p>Caching the resources involves transfers of 6GB of parquet; if this is too laborious, remote queries can be executed for specific queries.</p>
+<pre><code>&gt; x = remote_gene_query(gres="gene_info", qual='where "#tax_id" = 9606 limit 10')
+&gt; x
+# A tibble: 10 × 16
+   `#tax_id` GeneID Symbol   LocusTag Synonyms   dbXrefs chromosome map_location
+       &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;
+ 1      9606      1 A1BG     -        A1B|ABG|G… MIM:13… 19         19q13.43
+ 2      9606      2 A2M      -        A2MD|CPAM… MIM:10… 12         12p13.31
+ 3      9606      3 A2MP1    -        A2MP       HGNC:H… 12         12p13.31
+ 4      9606      9 NAT1     -        AAC1|MNAT… MIM:10… 8          8p22
+ 5      9606     10 NAT2     -        AAC2|NAT-… MIM:61… 8          8p22
+ 6      9606     11 NATP     -        AACP|NATP1 HGNC:H… 8          8p22
+ 7      9606     12 SERPINA3 -        AACT|ACT|… MIM:10… 14         14q32.13
+ 8      9606     13 AADAC    -        CES5A1|DAC MIM:60… 3          3q25.1
+ 9      9606     14 AAMP     -        -          MIM:60… 2          2q35
+10      9606     15 AANAT    -        DSPS|SNAT  MIM:60… 17         17q25.1
+# ℹ 8 more variables: description &lt;chr&gt;, type_of_gene &lt;chr&gt;,
+#   Symbol_from_nomenclature_authority &lt;chr&gt;,
+#   Full_name_from_nomenclature_authority &lt;chr&gt;, Nomenclature_status &lt;chr&gt;,
+#   Other_designations &lt;chr&gt;, Modification_date &lt;dbl&gt;, Feature_type &lt;chr&gt;</code></pre>
+<p></p>
 </div>
 <div class="section level1">
 <h1 id="available-resources">Available resources<a class="anchor" aria-label="anchor" href="#available-resources"></a>
