@@ -6,11 +6,18 @@ Performant and standard representations of gene annotation for all organisms cat
 
 `devtools::install_github("vjcitn/RNCBIGene")`
 
-# Purpose
+# Purposes
 
-Text files from NCBI Gene were transformed to parquet and placed in
-an NSF Open Storage Network bucket.  The `geneFromCache` function
-retrieves and caches the parquet files.
+## Simplified, unified annotation for all organisms addressed by NCBI
+
+The `org.*.*.db` packages are powerful and reliable but have
+a complex stack of schemata and scripts for generating organism-specific
+packages.
+
+This package works the basis of a one-line transformation to parquet of compressed
+text from NCBI.  The parquet files were placed in an NSF Open Storage Network bucket.  
+
+The `geneFromCache` function retrieves and caches the parquet files.
 
 ```
 > example(geneFromCache)
@@ -34,7 +41,7 @@ gnFrmC> arrow::open_dataset(gi) |> dplyr::filter(`#tax_id`==9606) |> head() |> d
 ```
 
 Caching the resources involves transfers of 6GB of parquet; if this is
-too laborious, remote queries can be executed for specific queries.
+too laborious, remote queries can be executed for specific needs:
 
 ```
 > x = remote_gene_query(gres="gene_info", qual='where "#tax_id" = 9606 limit 10')
@@ -57,7 +64,66 @@ too laborious, remote queries can be executed for specific queries.
 #   Full_name_from_nomenclature_authority <chr>, Nomenclature_status <chr>,
 #   Other_designations <chr>, Modification_date <dbl>, Feature_type <chr>
 ```
-
+
+## Annotation in a tidyverse style
+
+By retaining the "flat file" model of the original all-organism
+annotation content at NCBI, we may more straightforwardly
+have access to annotation mappings in tidyverse-style programming.
+As an example, given TCGA expression data annotated with gene symbols,
+we can add the Gene (Entrez) Ids as follows.
+
+```
+> suppressMessages({
++ gbt = curatedTCGAData(diseaseCode="GBM", 
++   assays="RNASeq2GeneNorm", version="2.0.1", dry.run=FALSE,
++   verbose=FALSE)
++ })
+> gbtr = experiments(gbt)[[1]]
+> library(tidyomics)
+> library(RNCBIGene)
+> gbtr[1:10,]
+# A SummarizedExperiment-tibble abstraction: 1,660 × 2
+# Features=10 | Samples=166 | Assays=
+   .feature .sample                     
+   <chr>    <chr>                       
+ 1 A1BG     TCGA-02-0047-01A-01R-1849-01
+ 2 A1CF     TCGA-02-0047-01A-01R-1849-01
+ 3 A2BP1    TCGA-02-0047-01A-01R-1849-01
+ 4 A2LD1    TCGA-02-0047-01A-01R-1849-01
+ 5 A2ML1    TCGA-02-0047-01A-01R-1849-01
+ 6 A2M      TCGA-02-0047-01A-01R-1849-01
+ 7 A4GALT   TCGA-02-0047-01A-01R-1849-01
+ 8 A4GNT    TCGA-02-0047-01A-01R-1849-01
+ 9 AAA1     TCGA-02-0047-01A-01R-1849-01
+10 AAAS     TCGA-02-0047-01A-01R-1849-01
+# ℹ 190 more rows
+# ℹ Use `print(n = ...)` to see more rows
+
+> gbtr2 = gbtr[1:1000,] |> 
++    mutate(entrez = mapIdsNG(keys=.feature)$GeneID) 
+> gbtr2[1:10,]
+# A SummarizedExperiment-tibble abstraction: 1,660 × 3
+# Features=10 | Samples=166 | Assays=
+   .feature .sample                         entrez
+   <chr>    <chr>                            <dbl>
+ 1 A1BG     TCGA-02-0047-01A-01R-1849-01         1
+ 2 A1CF     TCGA-02-0047-01A-01R-1849-01     29974
+ 3 A2BP1    TCGA-02-0047-01A-01R-1849-01        NA
+ 4 A2LD1    TCGA-02-0047-01A-01R-1849-01        NA
+ 5 A2ML1    TCGA-02-0047-01A-01R-1849-01    144568
+ 6 A2M      TCGA-02-0047-01A-01R-1849-01         2
+ 7 A4GALT   TCGA-02-0047-01A-01R-1849-01     53947
+ 8 A4GNT    TCGA-02-0047-01A-01R-1849-01     51146
+ 9 AAA1     TCGA-02-0047-01A-01R-1849-01 100329167
+10 AAAS     TCGA-02-0047-01A-01R-1849-01      8086
+# ℹ 190 more rows
+# ℹ Use `print(n = ...)` to see more rows
+```
+
+The restriction to the first 1000 features in the example above
+arises because an unrestricted attempt fails for a reason
+that is currently obscure.
 
 # Available resources
 

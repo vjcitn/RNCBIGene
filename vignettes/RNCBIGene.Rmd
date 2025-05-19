@@ -98,3 +98,8 @@ litpop[["lit.gene_refseq_uniprotkb_collab.parquet"]] |> filter(NCBI_tax_id == 96
    filter(`#NCBI_protein_accession` %in% pro)  |> collect()
 ```
 
+# Session information
+
+```{r lksess}
+sessionInfo()
+```

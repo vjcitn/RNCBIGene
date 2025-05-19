@@ -57,9 +57,14 @@
 <p><code>devtools::install_github("vjcitn/RNCBIGene")</code></p>
 </div>
 <div class="section level1">
-<h1 id="purpose">Purpose<a class="anchor" aria-label="anchor" href="#purpose"></a>
+<h1 id="purposes">Purposes<a class="anchor" aria-label="anchor" href="#purposes"></a>
 </h1>
-<p>Text files from NCBI Gene were transformed to parquet and placed in an NSF Open Storage Network bucket. The <code>geneFromCache</code> function retrieves and caches the parquet files.</p>
+<div class="section level2">
+<h2 id="simplified-unified-annotation-for-all-organisms-addressed-by-ncbi">Simplified, unified annotation for all organisms addressed by NCBI<a class="anchor" aria-label="anchor" href="#simplified-unified-annotation-for-all-organisms-addressed-by-ncbi"></a>
+</h2>
+<p>The <code>org.*.*.db</code> packages are powerful and reliable but have a complex stack of schemata and scripts for generating organism-specific packages.</p>
+<p>This package works the basis of a one-line transformation to parquet of compressed text from NCBI. The parquet files were placed in an NSF Open Storage Network bucket.</p>
+<p>The <code>geneFromCache</code> function retrieves and caches the parquet files.</p>
 <pre><code>&gt; example(geneFromCache)
 
 gnFrmC&gt; gi = geneFromCache("gene_info.parquet")
@@ -78,7 +83,7 @@ gnFrmC&gt; arrow::open_dataset(gi) |&gt; dplyr::filter(`#tax_id`==9606) |&gt; he
 #   Symbol_from_nomenclature_authority &lt;chr&gt;,
 #   Full_name_from_nomenclature_authority &lt;chr&gt;, Nomenclature_status &lt;chr&gt;,
 #   Other_designations &lt;chr&gt;, Modification_date &lt;int&gt;, Feature_type &lt;chr&gt;</code></pre>
-<p>Caching the resources involves transfers of 6GB of parquet; if this is too laborious, remote queries can be executed for specific queries.</p>
+<p>Caching the resources involves transfers of 6GB of parquet; if this is too laborious, remote queries can be executed for specific needs:</p>
 <pre><code>&gt; x = remote_gene_query(gres="gene_info", qual='where "#tax_id" = 9606 limit 10')
 &gt; x
 # A tibble: 10 × 16
@@ -98,7 +103,58 @@ gnFrmC&gt; arrow::open_dataset(gi) |&gt; dplyr::filter(`#tax_id`==9606) |&gt; he
 #   Symbol_from_nomenclature_authority &lt;chr&gt;,
 #   Full_name_from_nomenclature_authority &lt;chr&gt;, Nomenclature_status &lt;chr&gt;,
 #   Other_designations &lt;chr&gt;, Modification_date &lt;dbl&gt;, Feature_type &lt;chr&gt;</code></pre>
-<p></p>
+</div>
+<div class="section level2">
+<h2 id="annotation-in-a-tidyverse-style">Annotation in a tidyverse style<a class="anchor" aria-label="anchor" href="#annotation-in-a-tidyverse-style"></a>
+</h2>
+<p>By retaining the “flat file” model of the original all-organism annotation content at NCBI, we may more straightforwardly have access to annotation mappings in tidyverse-style programming. As an example, given TCGA expression data annotated with gene symbols, we can add the Gene (Entrez) Ids as follows.</p>
+<pre><code>&gt; suppressMessages({
++ gbt = curatedTCGAData(diseaseCode="GBM",
++   assays="RNASeq2GeneNorm", version="2.0.1", dry.run=FALSE,
++   verbose=FALSE)
++ })
+&gt; gbtr = experiments(gbt)[[1]]
+&gt; library(tidyomics)
+&gt; library(RNCBIGene)
+&gt; gbtr[1:10,]
+# A SummarizedExperiment-tibble abstraction: 1,660 × 2
+# Features=10 | Samples=166 | Assays=
+   .feature .sample
+   &lt;chr&gt;    &lt;chr&gt;
+ 1 A1BG     TCGA-02-0047-01A-01R-1849-01
+ 2 A1CF     TCGA-02-0047-01A-01R-1849-01
+ 3 A2BP1    TCGA-02-0047-01A-01R-1849-01
+ 4 A2LD1    TCGA-02-0047-01A-01R-1849-01
+ 5 A2ML1    TCGA-02-0047-01A-01R-1849-01
+ 6 A2M      TCGA-02-0047-01A-01R-1849-01
+ 7 A4GALT   TCGA-02-0047-01A-01R-1849-01
+ 8 A4GNT    TCGA-02-0047-01A-01R-1849-01
+ 9 AAA1     TCGA-02-0047-01A-01R-1849-01
+10 AAAS     TCGA-02-0047-01A-01R-1849-01
+# ℹ 190 more rows
+# ℹ Use `print(n = ...)` to see more rows
+
+&gt; gbtr2 = gbtr[1:1000,] |&gt;
++    mutate(entrez = mapIdsNG(keys=.feature)$GeneID)
+&gt; gbtr2[1:10,]
+# A SummarizedExperiment-tibble abstraction: 1,660 × 3
+# Features=10 | Samples=166 | Assays=
+   .feature .sample                         entrez
+   &lt;chr&gt;    &lt;chr&gt;                            &lt;dbl&gt;
+ 1 A1BG     TCGA-02-0047-01A-01R-1849-01         1
+ 2 A1CF     TCGA-02-0047-01A-01R-1849-01     29974
+ 3 A2BP1    TCGA-02-0047-01A-01R-1849-01        NA
+ 4 A2LD1    TCGA-02-0047-01A-01R-1849-01        NA
+ 5 A2ML1    TCGA-02-0047-01A-01R-1849-01    144568
+ 6 A2M      TCGA-02-0047-01A-01R-1849-01         2
+ 7 A4GALT   TCGA-02-0047-01A-01R-1849-01     53947
+ 8 A4GNT    TCGA-02-0047-01A-01R-1849-01     51146
+ 9 AAA1     TCGA-02-0047-01A-01R-1849-01 100329167
+10 AAAS     TCGA-02-0047-01A-01R-1849-01      8086
+# ℹ 190 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
+<p>The restriction to the first 1000 features in the example above arises because an unrestricted attempt fails for a reason that is currently obscure.</p>
+</div>
 </div>
 <div class="section level1">
 <h1 id="available-resources">Available resources<a class="anchor" aria-label="anchor" href="#available-resources"></a>
