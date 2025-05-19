@@ -11,10 +11,10 @@ Description: This package is based on transforming key textual resources from NC
 	parquet.  Resources from May 2025 were made available in an NSF Open Storage Network
 	bucket.  This package illustrates the use of standard and tidyverse-oriented approaches
 	to querying and using annotation on genes for all organisms covered by NCBI Gene.
-Depends: R (>= 4.0.0), tools, utils
+Depends: R (>= 4.1.0)
 Suggests: knitr, BiocStyle, testthat, rmarkdown, GO.db,
 	AnnotationDbi, DT
-Imports: arrow, dplyr, DBI, BiocFileCache
+Imports: arrow, dplyr, DBI, BiocFileCache, duckdb, utils
 License: Artistic-2.0
 VignetteBuilder: knitr
 biocViews: Infrastructure

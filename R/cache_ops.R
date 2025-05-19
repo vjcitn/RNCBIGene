@@ -39,7 +39,9 @@ available_gene_parquet = c(
 #' populate cache with available parquet files if needed, return
 #' path to cached file
 #' @import BiocFileCache
+#' @importFrom utils download.file
 #' @import arrow
+#' @import dplyr
 #' @param resource character(1) 
 #' @param cache character(1) BiocFileCache-like object
 #' @return path to local version of resource
