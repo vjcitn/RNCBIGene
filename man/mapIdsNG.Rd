@@ -9,7 +9,7 @@ mapIdsNG(
   taxid = 9606L,
   keys = c("ORMDL3", "TP53", "GSDMB", "XyZZY"),
   keytype = "Symbol",
-  columns = c("GeneID", "type_of_gene", "description")
+  column = c("GeneID")
 )
 }
 \arguments{
@@ -19,17 +19,28 @@ mapIdsNG(
 
 \item{keytype}{character(1), at present, some column of the gene_info.parquet dataset}
 
-\item{columns}{character(), a subset of columns of the gene_info.parquet dataset}
+\item{column}{character(1), a name of a column of the gene_info.parquet dataset}
 }
 \description{
 very preliminary analog of mapIds from AnnotationDbi, uses remote query to parquet
 for NCBI gene_info; the NG connotes NCBI Gene
 }
 \note{
-At present this function only uses `remote_gene_query`
+At present this function only uses `remote_gene_query`.  A `left_join` is conducted
+between the data.frame composed of keys, and the query result, with multiple parameter
+set to "first".
 }
 \examples{
 if (interactive()) {
 mapIdsNG()
+if (requireNamespace("airway") && requireNamespace("tidySummarizedExperiment")) {
+  data(airway, package="airway")
+  tse = as(airway, "tidySummarizedExperiment")
+  print(tse)
+  tse = tse |> dplyr::mutate(map_location=mapIdsNG(keys=.feature, keytype="Ensembl", column="map_location"))
+  tse = tse |> dplyr::mutate(MIM=mapIdsNG(keys=.feature, keytype="Ensembl", column="MIM"))
+  print(tse)
+  head(table(SummarizedExperiment::rowData(tse)$map_location))
+ }
 }
 }
