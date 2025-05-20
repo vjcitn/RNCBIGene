@@ -10,7 +10,7 @@ ngurl = function(gres="gene2pubmed") {
 #' @param tname character(1) arbitrary name to use for internal sql table
 #' @note The httpfs extension for duckdb is installed when the function is called.
 #' @examples
-#' if (interactive()) {
+#' if (is_online()) {
 #' remote_gene_query(qual = 'where "#tax_id" = 9606 limit 10;')
 #' }
 #' @export

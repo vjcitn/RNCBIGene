@@ -31,7 +31,7 @@ between the data.frame composed of keys, and the query result, with multiple par
 set to "first".
 }
 \examples{
-if (interactive()) {
+if (is_online()) {
 mapIdsNG()
 if (requireNamespace("airway") && requireNamespace("tidySummarizedExperiment")) {
   data(airway, package="airway")

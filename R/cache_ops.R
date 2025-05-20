@@ -1,3 +1,17 @@
+# from https://stackoverflow.com/questions/5076593/how-to-determine-if-you-have-an-internet-connection-in-r
+
+#' utility to check for internet access for testing
+#' @param site character(1)
+#' @return logical(1)
+#' @export
+is_online <- function(site="http://example.com/") {
+  tryCatch({
+    readLines(site,n=1)
+    TRUE
+  },
+  warning = function(w) invokeRestart("muffleWarning"),
+  error = function(e) FALSE)
+}
 
 .osn_bucket_to_cache <- function(
     entity, folder = "BiocParquetNCBI",

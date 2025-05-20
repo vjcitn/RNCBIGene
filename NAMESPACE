@@ -3,6 +3,7 @@
 S3method(print,NGparq)
 export(NGparq)
 export(geneFromCache)
+export(is_online)
 export(mapIdsNG)
 export(processDbx)
 export(remote_gene_query)

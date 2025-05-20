@@ -24,7 +24,7 @@ use duckdb to query NCBI Gene data in OSN bucket
 The httpfs extension for duckdb is installed when the function is called.
 }
 \examples{
-if (interactive()) {
+if (is_online()) {
 remote_gene_query(qual = 'where "#tax_id" = 9606 limit 10;')
 }
 }

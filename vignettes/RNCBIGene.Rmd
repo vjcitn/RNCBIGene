@@ -67,13 +67,17 @@ RNCBIGene:::available_gene_parquet
 
 Once we have cached them using
 `geneFromCache`, we can work with all of them "simultaneously".
+
 Because the retrieval process is laborious, the following chunk
-is not evaluated.
+is not evaluated.  Were it to be evaluated, it would be
+apparent that over 720 million records of annotation
+are available for interrogation.
+
 ```{r lksim, eval=FALSE}
 paths = lapply(RNCBIGene:::available_gene_parquet, geneFromCache)
 pop = lapply(paths, arrow::open_dataset)
 names(pop) = RNCBIGene:::available_gene_parquet
-sapply(pop, function(x) x |> nrow())
+sapply(pop, nrow)
 ```
 
 For illustration, the content corresponding to four human
@@ -85,6 +89,7 @@ litpop = lapply(litp,
     arrow::open_dataset)
 ns = basename(litp)
 names(litpop) = ns
+sapply(litpop, nrow)
 ```
 
 Example: find the UniProt identifiers associated
@@ -97,6 +102,36 @@ pro = litpop[["lit.gene2accession.parquet"]] |>
 litpop[["lit.gene_refseq_uniprotkb_collab.parquet"]] |> filter(NCBI_tax_id == 9606) |> 
    filter(`#NCBI_protein_accession` %in% pro)  |> collect()
 ```
+
+# Applications
+
+## Tidyverse-oriented annotation mapping
+
+Typically one would use org.Hs.eg.db to remap identifiers
+from a SummarizedExperiment.  We want to be able to do
+this for any identifier used in NCBI annotation, and for
+any organism.  Let's start with a dataset for human
+airway transcriptomics.  The features are annotated
+with Ensembl gene identifiers, and we will add
+map locations and MIM codes using `mapIdsNG`, a variant
+of AnnotationDbi's mapIds functionality for NCBI Gene.
+
+```{r dotidy}
+data(airway, package="airway")
+requireNamespace("tidySummarizedExperiment")
+tse = as(airway, "tidySummarizedExperiment")
+tse = tse |> dplyr::mutate(map_location=mapIdsNG(keys=.feature, keytype="Ensembl", column="map_location"))
+tse = tse |> dplyr::mutate(MIM=mapIdsNG(keys=.feature, keytype="Ensembl", column="MIM"))
+head(table(SummarizedExperiment::rowData(tse)$map_location))
+```
+
+Note that the identifiers that are conveniently available for
+`mapIdsNG` are currently limited to those in `gene_info`:
+```{r lkids}
+colnames(litpop[["lit.gene_info.parquet"]])
+```
+
+
 
 # Session information
 
