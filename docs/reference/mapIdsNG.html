@@ -9,7 +9,7 @@ for NCBI gene_info; the NG connotes NCBI Gene"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">RNCBIGene</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,7 @@ for NCBI gene_info; the NG connotes NCBI Gene</p>
 <span>  taxid <span class="op">=</span> <span class="fl">9606L</span>,</span>
 <span>  keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ORMDL3"</span>, <span class="st">"TP53"</span>, <span class="st">"GSDMB"</span>, <span class="st">"XyZZY"</span><span class="op">)</span>,</span>
 <span>  keytype <span class="op">=</span> <span class="st">"Symbol"</span>,</span>
-<span>  columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GeneID"</span>, <span class="st">"type_of_gene"</span>, <span class="st">"description"</span><span class="op">)</span></span>
+<span>  column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GeneID"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -66,20 +66,77 @@ for NCBI gene_info; the NG connotes NCBI Gene</p>
 <dd><p>character(1), at present, some column of the gene_info.parquet dataset</p></dd>
 
 
-<dt id="arg-columns">columns<a class="anchor" aria-label="anchor" href="#arg-columns"></a></dt>
-<dd><p>character(), a subset of columns of the gene_info.parquet dataset</p></dd>
+<dt id="arg-column">column<a class="anchor" aria-label="anchor" href="#arg-column"></a></dt>
+<dd><p>character(1), a name of a column of the gene_info.parquet dataset</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>At present this function only uses `remote_gene_query`</p>
+    <p>At present this function only uses `remote_gene_query`.  A `left_join` is conducted
+between the data.frame composed of keys, and the query result, with multiple parameter
+set to "first".</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="is_online.html">is_online</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="fu">mapIdsNG</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"airway"</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"tidySummarizedExperiment"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">airway</span>, package<span class="op">=</span><span class="st">"airway"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">tse</span> <span class="op">=</span> <span class="fu">as</span><span class="op">(</span><span class="va">airway</span>, <span class="st">"tidySummarizedExperiment"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">tse</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">tse</span> <span class="op">=</span> <span class="va">tse</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>map_location<span class="op">=</span><span class="fu">mapIdsNG</span><span class="op">(</span>keys<span class="op">=</span><span class="va">.feature</span>, keytype<span class="op">=</span><span class="st">"Ensembl"</span>, column<span class="op">=</span><span class="st">"map_location"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">tse</span> <span class="op">=</span> <span class="va">tse</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>MIM<span class="op">=</span><span class="fu">mapIdsNG</span><span class="op">(</span>keys<span class="op">=</span><span class="va">.feature</span>, keytype<span class="op">=</span><span class="st">"Ensembl"</span>, column<span class="op">=</span><span class="st">"MIM"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">tse</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">tse</span><span class="op">)</span><span class="op">$</span><span class="va">map_location</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="op">}</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required namespace: airway</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required namespace: tidySummarizedExperiment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A SummarizedExperiment-tibble abstraction: 509,416 × 23</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># </span><span style="color: #555555;">Features=63677 | Samples=8 | Assays=counts</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    .feature        .sample   counts SampleName cell  dex   albut Run   avgLength</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> ENSG00000000003 SRR10395…    679 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> ENSG00000000005 SRR10395…      0 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> ENSG00000000419 SRR10395…    467 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> ENSG00000000457 SRR10395…    260 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> ENSG00000000460 SRR10395…     60 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> ENSG00000000938 SRR10395…      0 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> ENSG00000000971 SRR10395…   <span style="text-decoration: underline;">3</span>251 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> ENSG00000001036 SRR10395…   <span style="text-decoration: underline;">1</span>433 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> ENSG00000001084 SRR10395…    519 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> ENSG00000001167 SRR10395…    394 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 40 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 14 more variables: Experiment &lt;fct&gt;, Sample &lt;fct&gt;, BioSample &lt;fct&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   gene_id &lt;chr&gt;, gene_name &lt;chr&gt;, entrezid &lt;int&gt;, gene_biotype &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   gene_seq_start &lt;int&gt;, gene_seq_end &lt;int&gt;, seq_name &lt;chr&gt;, seq_strand &lt;int&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   seq_coord_system &lt;int&gt;, symbol &lt;chr&gt;, GRangesList &lt;list&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A SummarizedExperiment-tibble abstraction: 509,416 × 25</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># </span><span style="color: #555555;">Features=63677 | Samples=8 | Assays=counts</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    .feature        .sample   counts SampleName cell  dex   albut Run   avgLength</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> ENSG00000000003 SRR10395…    679 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> ENSG00000000005 SRR10395…      0 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> ENSG00000000419 SRR10395…    467 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> ENSG00000000457 SRR10395…    260 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> ENSG00000000460 SRR10395…     60 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> ENSG00000000938 SRR10395…      0 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> ENSG00000000971 SRR10395…   <span style="text-decoration: underline;">3</span>251 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> ENSG00000001036 SRR10395…   <span style="text-decoration: underline;">1</span>433 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> ENSG00000001084 SRR10395…    519 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> ENSG00000001167 SRR10395…    394 GSM1275862 N613… untrt untrt SRR1…       126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 40 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 16 more variables: Experiment &lt;fct&gt;, Sample &lt;fct&gt;, BioSample &lt;fct&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   gene_id &lt;chr&gt;, gene_name &lt;chr&gt;, entrezid &lt;int&gt;, gene_biotype &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   gene_seq_start &lt;int&gt;, gene_seq_end &lt;int&gt;, seq_name &lt;chr&gt;, seq_strand &lt;int&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   seq_coord_system &lt;int&gt;, symbol &lt;chr&gt;, map_location &lt;chr&gt;, MIM &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   GRangesList &lt;list&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               -         10p11.1        10p11.21  10p11.21-p11.1        10p11.22 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              12               8              29               1              24 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10p11.22-p11.21 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               1 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

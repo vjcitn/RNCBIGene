@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RNCBIGene</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,16 +44,46 @@
 
       <dl><dt>
 
+          <code><a href="NGparq.html">NGparq()</a></code>
+
+        </dt>
+        <dd>obtain references to parquet serializations of slices of NCBI Gene annotation</dd>
+      </dl><dl><dt>
+
           <code><a href="geneFromCache.html">geneFromCache()</a></code>
 
         </dt>
         <dd>populate cache with available parquet files if needed, return path to cached file</dd>
       </dl><dl><dt>
 
+          <code><a href="is_online.html">is_online()</a></code>
+
+        </dt>
+        <dd>utility to check for internet access for testing</dd>
+      </dl><dl><dt>
+
           <code><a href="mapIdsNG.html">mapIdsNG()</a></code>
 
         </dt>
         <dd>very preliminary analog of mapIds from AnnotationDbi, uses remote query to parquet for NCBI gene_info; the NG connotes NCBI Gene</dd>
+      </dl><dl><dt>
+
+          <code><a href="print.NGparq.html">print(<i>&lt;NGparq&gt;</i>)</a></code>
+
+        </dt>
+        <dd>print method for NGparq list</dd>
+      </dl><dl><dt>
+
+          <code><a href="processDbx.html">processDbx()</a></code>
+
+        </dt>
+        <dd>given a bar-delimited string as produced for dbXrefs in gene_info, extract the value associated with a given tag</dd>
+      </dl><dl><dt>
+
+          <code><a href="processDbx1.html">processDbx1()</a></code>
+
+        </dt>
+        <dd>given an element of a bar-delimited string as produced for dbXrefs in gene_info, extract the value associated with a given tag</dd>
       </dl><dl><dt>
 
           <code><a href="remote_gene_query.html">remote_gene_query()</a></code>
