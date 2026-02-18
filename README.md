@@ -140,3 +140,32 @@ for demonstration code):
  43279811 2025-05-17 09:28:42.882232368 gene_orthologs.parquet
 1019413239 2025-05-17 09:28:47.416233993 gene_refseq_uniprotkb_collab.parquet
 ```
+
+Rclone command: `lsl osn:/bir190004-bucket01/BiocParquetNCBI/`
+
+Note Feb 18 2026:  With the transformation script pattern
+
+```
+library(DBI)
+library(duckdb)
+
+con = dbConnect(duckdb())
+
+dbExecute(con, "
+  CREATE TABLE gene2accession AS
+  SELECT *
+  FROM read_csv_auto(
+    'gene2accession.gz',
+    delim = '\t',
+    header = true,
+    compression = 'gzip',
+    ignore_errors=TRUE
+  )
+")
+
+dbExecute(con, "COPY (FROM gene2accession) TO 'gene2accession.parquet' (FORMAT parquet, COMPRESSION zstd, COMPRESSION_LEVEL 15)")
+```
+we find a 10% reduction in footprint.
+```
+-rw-r--r--  1 vincentcarey  staff  2804980627 Feb 18 11:37 gene2accession.parquet
+```
