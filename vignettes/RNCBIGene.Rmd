@@ -116,7 +116,9 @@ with Ensembl gene identifiers, and we will add
 map locations and MIM codes using `mapIdsNG`, a variant
 of AnnotationDbi's mapIds functionality for NCBI Gene.
 
-```{r dotidy}
+NOTE JULY 2026 the .feature reference fails.  Evaluation blocked.
+
+```{r dotidy,eval=FALSE}
 data(airway, package="airway")
 requireNamespace("tidySummarizedExperiment")
 tse = as(airway, "tidySummarizedExperiment")

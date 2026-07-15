@@ -1,6 +1,6 @@
 Package: RNCBIGene
 Title: High-performance data representations of gene annotations from NCBI
-Version: 0.0.4
+Version: 0.0.5
 Authors@R:
     person(given = "Vince",
            family = "Carey",
@@ -22,4 +22,4 @@ biocViews: Infrastructure
 Encoding: UTF-8
 URL: https://github.com/vjcitn/RNCBIGene
 BugReports: https://github.com/vjcitn/RNCBIGene/issues
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.0.0

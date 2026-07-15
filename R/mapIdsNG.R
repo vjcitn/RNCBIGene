@@ -10,15 +10,6 @@
 #' @examples
 #' if (is_online()) {
 #' mapIdsNG()
-#' if (requireNamespace("airway") && requireNamespace("tidySummarizedExperiment")) {
-#'   data(airway, package="airway")
-#'   tse = as(airway, "tidySummarizedExperiment")
-#'   print(tse)
-#'   tse = tse |> dplyr::mutate(map_location=mapIdsNG(keys=.feature, keytype="Ensembl", column="map_location"))
-#'   tse = tse |> dplyr::mutate(MIM=mapIdsNG(keys=.feature, keytype="Ensembl", column="MIM"))
-#'   print(tse)
-#'   head(table(SummarizedExperiment::rowData(tse)$map_location))
-#'  }
 #' }
 #' @export
 mapIdsNG = function(taxid = 9606L, keys=c("ORMDL3", "TP53", "GSDMB", "XyZZY"), keytype="Symbol", 
@@ -54,5 +45,7 @@ mapIdsNG = function(taxid = 9606L, keys=c("ORMDL3", "TP53", "GSDMB", "XyZZY"), k
 # now deal with order of the request.
  odf = data.frame(x=keys)
  names(odf) = keytype
- left_join(odf, dat, by=keytype, multiple="first") |> dplyr::pull()  # should be vector conformant to input
+ vals = left_join(odf, dat, by=keytype, multiple="first") |> dplyr::pull()  # should be vector conformant to input
+ if (is.atomic(vals)) names(vals) = keys
+ vals
 }

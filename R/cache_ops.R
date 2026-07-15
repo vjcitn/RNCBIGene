@@ -32,6 +32,15 @@ is_online <- function(site="http://example.com/") {
   bfcrpath(ca, tf, action = "copy")
 }
 
+#gene2accession.gz               2026-02-17 03:07  3.9G  
+#gene2ensembl.gz                 2026-02-17 03:08  277M  
+#gene2go.gz                      2026-02-17 03:09  1.2G  
+#gene2pubmed.gz                  2026-02-17 03:10  238M  
+#gene2refseq.gz                  2026-02-17 03:12  2.0G 
+#gene_info.gz                    2026-02-17 03:14  1.3G  
+#gene_orthologs.gz               2026-02-17 03:17  108M  
+#gene_refseq_uniprotkb_collab.gz 2026-02-17 05:18  1.1G  
+
 available_gene_parquet = c(
   "gene2go.parquet",
   "gene2pubmed.parquet",

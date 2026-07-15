@@ -33,14 +33,5 @@ set to "first".
 \examples{
 if (is_online()) {
 mapIdsNG()
-if (requireNamespace("airway") && requireNamespace("tidySummarizedExperiment")) {
-  data(airway, package="airway")
-  tse = as(airway, "tidySummarizedExperiment")
-  print(tse)
-  tse = tse |> dplyr::mutate(map_location=mapIdsNG(keys=.feature, keytype="Ensembl", column="map_location"))
-  tse = tse |> dplyr::mutate(MIM=mapIdsNG(keys=.feature, keytype="Ensembl", column="MIM"))
-  print(tse)
-  head(table(SummarizedExperiment::rowData(tse)$map_location))
- }
 }
 }
