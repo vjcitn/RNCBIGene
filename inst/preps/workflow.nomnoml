@@ -1,8 +1,8 @@
-#direction: right
+#direction: down
 #font: Helvetica
 #fontSize: 12
 #padding: 10
-#spacing: 50
+#spacing: 40
 #leading: 1.4
 
 [<database> NCBI FTP|ftp.ncbi.nlm.nih.gov/gene/DATA/]
@@ -24,13 +24,12 @@
   curl -sI NCBI FTP headers]
 
 [doall|
-  putNCBI.sh *.parquet;
-  putNCBI.sh provenance.json]
+  sh doall.sh]
 
 [putNCBI.sh|
   docker run rclone/rclone:latest;
-  -v RC2:/config/rclone;
-  -v forNCBI/OSN:/data;
+  -v $RCLONE_CONFIG_DIR:/config/rclone;
+  -v $PARQUET_DIR:/data;
   copyto $1 osn:/bir190004-bucket01/BiocParquetNCBI/$1]
 
 [<database> OSN bucket|
