@@ -42,6 +42,12 @@ lands in R.  The `open_ncbi_gene()` function returns a lazy `dplyr::tbl`;
 the user composes `filter()`, `select()`, and `collect()` calls as they would
 with any remote dplyr backend.
 
+The duckdb `httpfs` extension required for remote parquet access is cached
+permanently in `tools::R_user_dir("RNCBIGene", "data")` rather than a
+temporary directory, so it is downloaded only once per machine.  The cache
+location can be overridden by setting the `DUCKDB_EXTENSION_DIRECTORY`
+environment variable before loading the package.
+
 ```{r lknc1, message=FALSE}
 library(RNCBIGene)
 library(dplyr)
