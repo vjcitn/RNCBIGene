@@ -7,7 +7,8 @@
 remote_gene_query(
   gres = "gene2pubmed",
   qual = "limit 5",
-  tname = basename(tempfile())
+  tname = basename(tempfile()),
+  collect = FALSE
 )
 }
 \arguments{
@@ -16,15 +17,17 @@ remote_gene_query(
 \item{qual}{a SQL fragment used to qualify a select * clause}
 
 \item{tname}{character(1) arbitrary name to use for internal sql table}
+
+\item{collect}{logical(1) if TRUE returns a data.frame (legacy behavior); default FALSE returns lazy tbl}
 }
 \description{
 use duckdb to query NCBI Gene data in OSN bucket
 }
 \note{
-The httpfs extension for duckdb is installed when the function is called.
+Uses a persistent duckdb connection via ncbi_gene_con(). For composable lazy queries prefer open_ncbi_gene().
 }
 \examples{
 if (is_online()) {
-remote_gene_query(qual = 'where "#tax_id" = 9606 limit 10;')
+  remote_gene_query(qual = 'where "#tax_id" = 9606 limit 10') |> dplyr::collect()
 }
 }

@@ -2,36 +2,35 @@
 % Please edit documentation in R/mapIdsNG.R
 \name{mapIdsNG}
 \alias{mapIdsNG}
-\title{very preliminary analog of mapIds from AnnotationDbi, uses remote query to parquet
-for NCBI gene_info; the NG connotes NCBI Gene}
+\title{analog of mapIds from AnnotationDbi using lazy duckdb queries on NCBI Gene parquet}
 \usage{
 mapIdsNG(
   taxid = 9606L,
   keys = c("ORMDL3", "TP53", "GSDMB", "XyZZY"),
   keytype = "Symbol",
-  column = c("GeneID")
+  column = "GeneID"
 )
 }
 \arguments{
-\item{taxid}{integer(1) integer code for species, defaults to 9606L for Homo sapiens}
+\item{taxid}{integer(1) taxonomy code, defaults to 9606L for Homo sapiens}
 
-\item{keys}{a vector of keys to be translated}
+\item{keys}{character vector of keys to translate}
 
-\item{keytype}{character(1), at present, some column of the gene_info.parquet dataset}
+\item{keytype}{character(1) one of "Symbol", "GeneID", or "Ensembl"}
 
-\item{column}{character(1), a name of a column of the gene_info.parquet dataset}
+\item{column}{character(1) name of the output annotation column; use "Ensembl" to
+retrieve Ensembl gene identifiers via gene2ensembl.parquet}
 }
 \description{
-very preliminary analog of mapIds from AnnotationDbi, uses remote query to parquet
-for NCBI gene_info; the NG connotes NCBI Gene
+analog of mapIds from AnnotationDbi using lazy duckdb queries on NCBI Gene parquet
 }
 \note{
-At present this function only uses `remote_gene_query`.  A `left_join` is conducted
-between the data.frame composed of keys, and the query result, with multiple parameter
-set to "first".
+All filtering is pushed to duckdb before a single collect() retrieves only
+  the matched rows and columns. Ensembl keytype or column requires gene2ensembl.parquet
+  in the OSN bucket.
 }
 \examples{
 if (is_online()) {
-mapIdsNG()
+  mapIdsNG()
 }
 }

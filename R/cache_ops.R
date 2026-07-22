@@ -42,6 +42,7 @@ is_online <- function(site="http://example.com/") {
 #gene_refseq_uniprotkb_collab.gz 2026-02-17 05:18  1.1G  
 
 available_gene_parquet = c(
+  "gene2ensembl.parquet",
   "gene2go.parquet",
   "gene2pubmed.parquet",
   "gene_info.parquet",
