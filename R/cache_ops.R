@@ -32,33 +32,30 @@ is_online <- function(site="http://example.com/") {
   bfcrpath(ca, tf, action = "copy")
 }
 
-#gene2accession.gz               2026-02-17 03:07  3.9G  
-#gene2ensembl.gz                 2026-02-17 03:08  277M  
-#gene2go.gz                      2026-02-17 03:09  1.2G  
-#gene2pubmed.gz                  2026-02-17 03:10  238M  
-#gene2refseq.gz                  2026-02-17 03:12  2.0G 
-#gene_info.gz                    2026-02-17 03:14  1.3G  
-#gene_orthologs.gz               2026-02-17 03:17  108M  
-#gene_refseq_uniprotkb_collab.gz 2026-02-17 05:18  1.1G  
 
-available_gene_parquet = c(
-  "gene2ensembl.parquet",
-  "gene2go.parquet",
-  "gene2pubmed.parquet",
-  "gene_info.parquet",
-  "gene2accession.parquet",
-  "gene2refseq.parquet",
-  "gene_orthologs.parquet",
-  "gene_refseq_uniprotkb_collab.parquet"
-)
+OSN_LISTING_URL <- paste0(
+  "https://mghp.osn.xsede.org/bir190004-bucket01",
+  "?prefix=BiocParquetNCBI/")
 
-#3002338275 2025-05-17 09:28:29.618223689 gene2accession.parquet
-#680657744 2025-05-15 10:31:33.209868982 gene2go.parquet
-# 89080561 2025-05-15 10:37:45.825464461 gene2pubmed.parquet
-#1467468877 2025-05-17 09:28:38.701230380 gene2refseq.parquet
-#965232147 2025-05-15 10:33:17.845775772 gene_info.parquet
-# 43279811 2025-05-17 09:28:42.882232368 gene_orthologs.parquet
-#1019413239 2025-05-17 09:28:47.416233993 gene_refseq_uniprotkb_collab.parquet
+#' list parquet resources available in the OSN bucket
+#'
+#' Queries the bucket's S3 listing endpoint and returns the current set of
+#' parquet file names.  Requires an internet connection; stops with an
+#' informative message if the request fails.
+#' @return character vector of parquet file names (e.g. \code{"gene_info.parquet"})
+#' @examples
+#' if (is_online()) available_ncbi_parquet()
+#' @export
+available_ncbi_parquet <- function() {
+  if (!is_online())
+    stop("No internet connection -- please try again when online.")
+  xml  <- paste(readLines(OSN_LISTING_URL, warn = FALSE), collapse = "")
+  keys <- regmatches(xml,
+    gregexpr("(?<=<Key>)[^<]+\\.parquet(?=</Key>)", xml, perl = TRUE))[[1]]
+  if (length(keys) == 0L)
+    stop("Bucket listing returned no parquet files -- check the OSN URL.")
+  sort(basename(keys))
+}
 
 #' populate cache with available parquet files if needed, return
 #' path to cached file
@@ -77,6 +74,6 @@ available_gene_parquet = c(
 #' arrow::open_dataset(gi) |> dplyr::filter(`#tax_id`==9606) |> head() |> dplyr::collect()
 #' @export
 geneFromCache = function(resource, cache=BiocFileCache::BiocFileCache()) {
- stopifnot(resource %in% available_gene_parquet)
+ stopifnot(resource %in% available_ncbi_parquet())
  .osn_bucket_to_cache(entity=resource, ca=cache)
 }

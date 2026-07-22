@@ -69,7 +69,10 @@ built from May 2025 NCBI snapshots; `gene2ensembl` was added to support
 clean Ensembl identifier lookups.
 
 ```{r lksev}
-RNCBIGene:::available_gene_parquet
+tryCatch(
+  available_ncbi_parquet(),
+  error = function(e) message(conditionMessage(e))
+)
 ```
 
 Once cached locally with `geneFromCache`, all files can be opened
