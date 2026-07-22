@@ -1,6 +1,6 @@
 Package: RNCBIGene
 Title: High-performance data representations of gene annotations from NCBI
-Version: 0.0.5
+Version: 0.0.6
 Authors@R:
     person(given = "Vince",
            family = "Carey",
