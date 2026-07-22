@@ -28,7 +28,9 @@ on.exit({
 })
 
 dbExecute(con, sprintf("SET temp_directory='%s'", duck_tmp))
-# Reduces memory pressure significantly on large files.
+# Allow generous disk spilling (max_temp_directory_size defaults to the
+# memory limit, not disk space, which is far too small for multi-GB files).
+dbExecute(con, "SET max_temp_directory_size='20GiB'")
 dbExecute(con, "SET preserve_insertion_order=false")
 
 dbExecute(con, sprintf(
