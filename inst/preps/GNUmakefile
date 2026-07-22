@@ -32,9 +32,12 @@ PARQUET_FILES := $(addsuffix .parquet, $(RESOURCES))
 RSCRIPT    := Rscript
 SCRIPT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all download parquet clean
+.PHONY: all download parquet clean pull
 
-all: download parquet
+all: pull download parquet
+
+pull:
+	git -C $(SCRIPT_DIR) pull
 
 # ── Download ────────────────────────────────────────────────────────────────
 
