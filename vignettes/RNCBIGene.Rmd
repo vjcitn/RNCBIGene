@@ -237,7 +237,7 @@ them.
 The same pattern works against any resource.  For example, attach GO terms to
 a local set of Entrez IDs via `gene2go`:
 
-```{r lkjoin2, eval=FALSE}
+```{r lkjoin2}
 local_ids <- data.frame(GeneID = c(94103L, 7157L, 672L))
 join_ncbi_gene(local_ids, by = "GeneID", resource = "gene2go",
                taxid = 9606L, type = "inner") |>
