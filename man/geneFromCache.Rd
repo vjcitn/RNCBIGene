@@ -2,27 +2,18 @@
 % Please edit documentation in R/cache_ops.R
 \name{geneFromCache}
 \alias{geneFromCache}
-\title{populate cache with available parquet files if needed, return
-path to cached file}
+\title{download a parquet file from the OSN bucket to local BiocFileCache}
 \usage{
 geneFromCache(resource, cache = BiocFileCache::BiocFileCache())
 }
 \arguments{
 \item{resource}{character(1)}
 
-\item{cache}{character(1) BiocFileCache-like object}
+\item{cache}{BiocFileCache object}
 }
 \value{
-path to local version of resource
+path to local cached file
 }
 \description{
-populate cache with available parquet files if needed, return
-path to cached file
-}
-\examples{
-oldop = options()
-options(timeout=3600)
-gi = geneFromCache("gene_info.parquet")
-options(oldop)
-arrow::open_dataset(gi) |> dplyr::filter(`#tax_id`==9606) |> head() |> dplyr::collect()
+download a parquet file from the OSN bucket to local BiocFileCache
 }

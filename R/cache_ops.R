@@ -57,22 +57,14 @@ available_ncbi_parquet <- function() {
   sort(basename(keys))
 }
 
-#' populate cache with available parquet files if needed, return
-#' path to cached file
+#' download a parquet file from the OSN bucket to local BiocFileCache
 #' @import BiocFileCache
 #' @importFrom utils download.file
 #' @import arrow
 #' @import dplyr
-#' @param resource character(1) 
-#' @param cache character(1) BiocFileCache-like object
-#' @return path to local version of resource
-#' @examples
-#' oldop = options()
-#' options(timeout=3600)
-#' gi = geneFromCache("gene_info.parquet")
-#' options(oldop)
-#' arrow::open_dataset(gi) |> dplyr::filter(`#tax_id`==9606) |> head() |> dplyr::collect()
-#' @export
+#' @param resource character(1)
+#' @param cache BiocFileCache object
+#' @return path to local cached file
 geneFromCache = function(resource, cache=BiocFileCache::BiocFileCache()) {
  stopifnot(resource %in% available_ncbi_parquet())
  .osn_bucket_to_cache(entity=resource, ca=cache)

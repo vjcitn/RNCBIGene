@@ -2,7 +2,7 @@
 
 S3method(print,NGparq)
 export(NGparq)
-export(geneFromCache)
+export(available_ncbi_parquet)
 export(is_online)
 export(join_ncbi_gene)
 export(mapIdsNG)

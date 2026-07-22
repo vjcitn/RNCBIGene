@@ -51,8 +51,8 @@ environment variable before loading the package.
 ```{r lknc1, message=FALSE}
 library(RNCBIGene)
 library(dplyr)
-go_ds = arrow::open_dataset(geneFromCache("gene2go.parquet"))
-lkor = go_ds |> filter(`#tax_id`==9606, GeneID==94103) |> collect() |> as.data.frame()
+lkor = open_ncbi_gene("gene2go", taxid=9606L) |>
+  filter(GeneID==94103) |> collect() |> as.data.frame()
 DT::datatable(lkor)
 ```
 
@@ -75,16 +75,15 @@ tryCatch(
 )
 ```
 
-Once cached locally with `geneFromCache`, all files can be opened
-simultaneously.  The retrieval is laborious (the full set exceeds 8 GB
-compressed), so the following chunk is not evaluated, but were it run
-it would reveal over 720 million annotation records.
+All resources can be queried simultaneously through the persistent duckdb
+connection.  The following chunk is not evaluated, but were it run it would
+reveal over 720 million annotation records across the eight parquet files.
 
 ```{r lksim, eval=FALSE}
-paths = lapply(RNCBIGene:::available_gene_parquet, geneFromCache)
-pop = lapply(paths, arrow::open_dataset)
-names(pop) = RNCBIGene:::available_gene_parquet
-sapply(pop, nrow)
+resources <- available_ncbi_parquet()
+tbls <- lapply(sub("\\.parquet$", "", resources), open_ncbi_gene)
+names(tbls) <- resources
+sapply(tbls, dplyr::count) |> collect()
 ```
 
 For illustration, a small subset covering four human genes on chromosome 17
