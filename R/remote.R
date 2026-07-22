@@ -6,11 +6,20 @@ ngurl <- function(gres = "gene2pubmed") {
 }
 
 #' get or create a persistent duckdb connection with httpfs loaded
+#'
+#' The duckdb httpfs extension is cached in a permanent user directory
+#' (via \code{tools::R_user_dir}) so it is not re-downloaded each session.
+#' The directory can be inspected with
+#' \code{tools::R_user_dir("RNCBIGene", "data")}.
 #' @return a DBI connection to an in-process duckdb instance
 #' @export
 ncbi_gene_con <- function() {
   if (!exists("con", envir = .rncbigene_env) ||
       !DBI::dbIsValid(.rncbigene_env$con)) {
+    ext_dir <- tools::R_user_dir("RNCBIGene", "data")
+    if (!dir.exists(ext_dir))
+      dir.create(ext_dir, recursive = TRUE)
+    options(duckdb.extension_directory = ext_dir)
     con <- DBI::dbConnect(duckdb::duckdb())
     DBI::dbExecute(con, "INSTALL httpfs; LOAD httpfs;")
     .rncbigene_env$con <- con
