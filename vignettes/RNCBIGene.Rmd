@@ -76,14 +76,18 @@ tryCatch(
 ```
 
 All resources can be queried simultaneously through the persistent duckdb
-connection.  The following chunk is not evaluated, but were it run it would
-reveal over 720 million annotation records across the eight parquet files.
+connection.  Record counts are retrieved by pushing `COUNT(*)` to duckdb,
+which reads row-group metadata from parquet without fetching the data itself.
 
-```{r lksim, eval=FALSE}
-resources <- available_ncbi_parquet()
-tbls <- lapply(sub("\\.parquet$", "", resources), open_ncbi_gene)
-names(tbls) <- resources
-sapply(tbls, dplyr::count) |> collect()
+```{r lksim}
+tryCatch({
+  resources <- available_ncbi_parquet()
+  counts <- vapply(
+    sub("\\.parquet$", "", resources),
+    function(r) open_ncbi_gene(r) |> dplyr::tally() |> dplyr::collect() |> dplyr::pull(n),
+    numeric(1))
+  setNames(counts, resources)
+}, error = function(e) message(conditionMessage(e)))
 ```
 
 For illustration, a small subset covering four human genes on chromosome 17
