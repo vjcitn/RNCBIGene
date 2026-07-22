@@ -23,9 +23,8 @@ tool development.  See the [AnnotationDbi](https://bioconductor.org/packages/Ann
 documentation for details.  AnnotationDbi and packages based
 on it use SQLite to manage
 organism-specific vocabularies and to resolve queries about
-mappings between identifier sets.  For example,
-learn the Gene Ontology annotations for gene ORMDL3
-in _Homo sapiens_:
+mappings between identifier sets.  For example, learn the Gene Ontology
+annotations for gene ORMDL3 in _Homo sapiens_:
 
 ```{r lkorg1, message=FALSE}
 library(org.Hs.eg.db)
@@ -34,13 +33,16 @@ go_orm = AnnotationDbi::select(org.Hs.eg.db, key="ORMDL3", keytype="SYMBOL",
 head(go_orm)
 ```
 
-With RNCBIGene, all NCBI's GO annotations for all organisms are in a
-single resource.  The `geneFromCache` package will retrieve
-an Apache Parquet representation of the gene2go.gz text
-resource distributed at NCBI's FTP site.  For this
-query, we use the knowledge the ORMDL3 has Gene ID 94103.
+RNCBIGene takes a different approach: instead of organism-specific SQLite
+databases, all NCBI Gene annotation for all organisms lives in a set of
+Apache Parquet files on an NSF Open Storage Network bucket.  Queries run
+through a persistent duckdb connection that reads remote parquet directly,
+pushing filters and column selections to the network layer before any data
+lands in R.  The `open_ncbi_gene()` function returns a lazy `dplyr::tbl`;
+the user composes `filter()`, `select()`, and `collect()` calls as they would
+with any remote dplyr backend.
 
-```{r lknc1,message=FALSE}
+```{r lknc1, message=FALSE}
 library(RNCBIGene)
 library(dplyr)
 go_ds = arrow::open_dataset(geneFromCache("gene2go.parquet"))
@@ -49,29 +51,25 @@ DT::datatable(lkor)
 ```
 
 It is not the purpose of this package to provide pin-compatible
-replacements for the AnnotationDbi packages.  That would
-be a huge effort, and material support for such an
-effort does not exist at this
-time.  This package is created to explore the opportunities
-for simplification and performance enhancement 
-arising from the adoption of Parquet and Arrow for annotation
-representation and interrogation.
+replacements for the AnnotationDbi packages.  This package explores
+the opportunities for simplification and performance enhancement arising
+from the adoption of Parquet and Arrow for annotation representation
+and interrogation.
 
 # Scope
 
-There are seven parquet files that represent
-the NCBI Gene content available on February 22 2025.
+There are eight parquet files representing NCBI Gene content.  Seven were
+built from May 2025 NCBI snapshots; `gene2ensembl` was added to support
+clean Ensembl identifier lookups.
+
 ```{r lksev}
 RNCBIGene:::available_gene_parquet
 ```
 
-Once we have cached them using
-`geneFromCache`, we can work with all of them "simultaneously".
-
-Because the retrieval process is laborious, the following chunk
-is not evaluated.  Were it to be evaluated, it would be
-apparent that over 720 million records of annotation
-are available for interrogation.
+Once cached locally with `geneFromCache`, all files can be opened
+simultaneously.  The retrieval is laborious (the full set exceeds 8 GB
+compressed), so the following chunk is not evaluated, but were it run
+it would reveal over 720 million annotation records.
 
 ```{r lksim, eval=FALSE}
 paths = lapply(RNCBIGene:::available_gene_parquet, geneFromCache)
@@ -80,60 +78,161 @@ names(pop) = RNCBIGene:::available_gene_parquet
 sapply(pop, nrow)
 ```
 
-For illustration, the content corresponding to four human
-genes on chromosome 17 has been saved in the package.
+For illustration, a small subset covering four human genes on chromosome 17
+is bundled with the package.
 
 ```{r lklit}
 litp = dir(system.file("litparquet", package="RNCBIGene"), full.names=TRUE)
-litpop = lapply(litp,
-    arrow::open_dataset)
+litpop = lapply(litp, arrow::open_dataset)
 ns = basename(litp)
 names(litpop) = ns
 sapply(litpop, nrow)
 ```
 
-Example: find the UniProt identifiers associated
-with gene ORMDL3 in humans.
+Find the UniProt identifiers associated with ORMDL3:
 
 ```{r lkuni}
-pro = litpop[["lit.gene2accession.parquet"]] |> 
-   filter(`#tax_id` == 9606, Symbol == "ORMDL3") |> 
+pro = litpop[["lit.gene2accession.parquet"]] |>
+   filter(`#tax_id` == 9606, Symbol == "ORMDL3") |>
    select(protein_accession.version) |> collect() |> pull() |> setdiff("-")
-litpop[["lit.gene_refseq_uniprotkb_collab.parquet"]] |> filter(NCBI_tax_id == 9606) |> 
-   filter(`#NCBI_protein_accession` %in% pro)  |> collect()
+litpop[["lit.gene_refseq_uniprotkb_collab.parquet"]] |>
+   filter(NCBI_tax_id == 9606) |>
+   filter(`#NCBI_protein_accession` %in% pro) |> collect()
 ```
 
-# Applications
+# Lazy remote queries with `open_ncbi_gene()`
 
-## Tidyverse-oriented annotation mapping
+`open_ncbi_gene()` returns a lazy `dplyr::tbl` backed by a duckdb VIEW over
+the remote parquet file.  No data is fetched until `collect()` is called.
+Predicates passed to `filter()` and column lists in `select()` are translated
+to SQL and pushed down to the parquet read, so only the requested rows and
+columns travel the wire.
 
-Typically one would use org.Hs.eg.db to remap identifiers
-from a SummarizedExperiment.  We want to be able to do
-this for any identifier used in NCBI annotation, and for
-any organism.  Let's start with a dataset for human
-airway transcriptomics.  The features are annotated
-with Ensembl gene identifiers, and we will add
-map locations and MIM codes using `mapIdsNG`, a variant
-of AnnotationDbi's mapIds functionality for NCBI Gene.
-
-NOTE JULY 2026 the .feature reference fails.  Evaluation blocked.
-
-```{r dotidy,eval=FALSE}
-data(airway, package="airway")
-requireNamespace("tidySummarizedExperiment")
-tse = as(airway, "tidySummarizedExperiment")
-tse = tse |> dplyr::mutate(map_location=mapIdsNG(keys=.feature, keytype="Ensembl", column="map_location"))
-tse = tse |> dplyr::mutate(MIM=mapIdsNG(keys=.feature, keytype="Ensembl", column="MIM"))
-head(table(SummarizedExperiment::rowData(tse)$map_location))
+```{r lkopen}
+tbl <- open_ncbi_gene("gene_info", taxid = 9606L)
+class(tbl)
 ```
 
-Note that the identifiers that are conveniently available for
-`mapIdsNG` are currently limited to those in `gene_info`:
+The object is a lazy SQL-backed tbl — inspecting it triggers a small preview
+fetch but does not load the full dataset.
+
+Compose a multi-step query before collecting:
+
+```{r lkchain}
+open_ncbi_gene("gene_info", taxid = 9606L) |>
+  filter(Symbol %in% c("TP53", "ORMDL3", "BRCA1", "GSDMB")) |>
+  select(Symbol, GeneID, map_location, type_of_gene) |>
+  collect()
+```
+
+The same interface works for any of the eight resources.  Omitting `taxid`
+returns a tbl spanning all organisms:
+
+```{r lkortho, eval=FALSE}
+open_ncbi_gene("gene_orthologs") |>
+  filter(GeneID == 7157L) |>   # TP53 orthologs across all taxa
+  collect()
+```
+
+The available column names for a resource can be inspected from the bundled
+`litparquet` subset without hitting the network:
+
 ```{r lkids}
 colnames(litpop[["lit.gene_info.parquet"]])
 ```
 
+# Identifier mapping with `mapIdsNG()`
 
+`mapIdsNG()` is a `mapIds`-style function that pushes all filtering to duckdb.
+For Symbol or GeneID keytypes the filter is a SQL `IN (...)` predicate on
+`gene_info`; for the Ensembl keytype a JOIN between `gene2ensembl` and
+`gene_info` is performed entirely in duckdb.  Exactly one `collect()` call
+retrieves only the matched rows and the requested columns.
+
+## Symbol to GeneID
+
+```{r lkmapids}
+mapIdsNG(
+  keys    = c("ORMDL3", "TP53", "GSDMB", "XyZZY"),
+  keytype = "Symbol",
+  column  = "GeneID"
+)
+```
+
+The result is a named vector conformant to the input `keys`, with `NA` for
+unrecognised identifiers.
+
+## Symbol to chromosomal map location
+
+```{r lkmaploc}
+mapIdsNG(
+  keys    = c("ORMDL3", "TP53", "GSDMB", "BRCA1"),
+  keytype = "Symbol",
+  column  = "map_location"
+)
+```
+
+## Ensembl to Symbol
+
+Ensembl lookups join `gene2ensembl.parquet` with `gene_info.parquet` on
+`GeneID`; the join runs entirely in duckdb.  This requires `gene2ensembl.parquet`
+to be present in the OSN bucket (see `inst/preps/Makefile` for the conversion
+recipe).
+
+```{r lkensembl, eval=FALSE}
+mapIdsNG(
+  keys    = c("ENSG00000073605", "ENSG00000141510"),
+  keytype = "Ensembl",
+  column  = "Symbol"
+)
+```
+
+## Attaching annotation to a SummarizedExperiment
+
+The `airway` dataset carries Ensembl gene identifiers as row names.  Once
+`gene2ensembl.parquet` is available, map locations can be appended with a
+single `mapIdsNG()` call per annotation column:
+
+```{r lktse, eval=FALSE}
+data(airway, package = "airway")
+requireNamespace("tidySummarizedExperiment")
+tse <- as(airway, "tidySummarizedExperiment")
+tse <- tse |> dplyr::mutate(
+  map_location = mapIdsNG(keys = .feature, keytype = "Ensembl",
+                           column = "map_location")
+)
+head(table(SummarizedExperiment::rowData(tse)$map_location))
+```
+
+# Joining local data to remote annotation with `join_ncbi_gene()`
+
+`join_ncbi_gene()` uploads a local data frame to the duckdb session as a
+temporary table and returns a lazy join against any remote NCBI Gene resource.
+Both sides of the join run in duckdb; the caller decides what to `select()` and
+when to `collect()`.
+
+```{r lkjoin}
+local_df <- data.frame(Symbol = c("ORMDL3", "TP53", "BRCA1", "GSDMB", "XyZZY"))
+
+join_ncbi_gene(local_df, by = "Symbol", taxid = 9606L) |>
+  select(Symbol, GeneID, map_location, type_of_gene) |>
+  collect()
+```
+
+Unmatched keys (here `XyZZY`) appear with `NA` in the annotation columns
+because the default join type is `"left"`.  Switch to `type = "inner"` to drop
+them.
+
+The same pattern works against any resource.  For example, attach GO terms to
+a local set of Entrez IDs via `gene2go`:
+
+```{r lkjoin2, eval=FALSE}
+local_ids <- data.frame(GeneID = c(94103L, 7157L, 672L))
+join_ncbi_gene(local_ids, by = "GeneID", resource = "gene2go",
+               taxid = 9606L, type = "inner") |>
+  select(GeneID, GO_ID, Evidence, Qualifier) |>
+  collect()
+```
 
 # Session information
 
