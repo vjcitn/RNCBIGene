@@ -1,0 +1,57 @@
+#direction: right
+#font: Helvetica
+#fontSize: 12
+#padding: 10
+#spacing: 50
+#leading: 1.4
+
+[<database> NCBI FTP|ftp.ncbi.nlm.nih.gov/gene/DATA/]
+
+[GNUmakefile|
+  make download;
+  make parquet;
+  make provenance]
+
+[YYYYMMDD/*.gz|curl -C - -L]
+
+[*.parquet|
+  to_parquet.R;
+  duckdb read_csv_auto;
+  COPY TO parquet (zstd)]
+
+[provenance.json|
+  make_provenance.R;
+  curl -sI NCBI FTP headers]
+
+[doall|
+  putNCBI.sh *.parquet;
+  putNCBI.sh provenance.json]
+
+[putNCBI.sh|
+  docker run rclone/rclone:latest;
+  -v RC2:/config/rclone;
+  -v forNCBI/OSN:/data;
+  copyto $1 osn:/bir190004-bucket01/BiocParquetNCBI/$1]
+
+[<database> OSN bucket|
+  bir190004-bucket01/BiocParquetNCBI/]
+
+[RNCBIGene package|
+  open_ncbi_gene();
+  mapIdsNG();
+  join_ncbi_gene();
+  ncbi_parquet_info();
+  available_ncbi_parquet()]
+
+[<actor> Analyst]
+
+[<database> NCBI FTP]   -> [GNUmakefile]
+[GNUmakefile]           -> [YYYYMMDD/*.gz]
+[YYYYMMDD/*.gz]         -> [*.parquet]
+[YYYYMMDD/*.gz]         -> [provenance.json]
+[*.parquet]             -> [doall]
+[provenance.json]       -> [doall]
+[doall]                 -> [putNCBI.sh]
+[putNCBI.sh]            -> [<database> OSN bucket]
+[<database> OSN bucket] -> [RNCBIGene package]
+[RNCBIGene package]     -> [<actor> Analyst]
