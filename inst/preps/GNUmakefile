@@ -6,11 +6,13 @@
 #   make download              fetch all .gz files into a YYYYMMDD/ folder
 #   make parquet SRCDIR=...    convert that folder's .gz files to .parquet here
 #   make provenance SRCDIR=... HEAD-request NCBI FTP to record source dates
+#   make upload                push .parquet + provenance.json to OSN bucket
 #   make all                   pull, download, convert, provenance (today's date)
 #   make clean SRCDIR=...      remove the downloaded .gz folder (keeps .parquet)
 #
-# Upload provenance.json and the .parquet files to the OSN bucket manually
-# after running all.
+# Upload requires two environment variables:
+#   RCLONE_CONFIG_DIR   path to directory containing rclone.conf
+#   PARQUET_DIR         path to directory containing the files to upload
 
 NCBI_BASE := https://ftp.ncbi.nlm.nih.gov/gene/DATA
 
@@ -33,7 +35,7 @@ PARQUET_FILES := $(addsuffix .parquet, $(RESOURCES))
 RSCRIPT    := Rscript
 SCRIPT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: all download parquet provenance clean pull
+.PHONY: all download parquet provenance upload clean pull
 
 all: pull download parquet provenance
 
@@ -66,6 +68,13 @@ provenance: provenance.json
 
 provenance.json: $(PARQUET_FILES)
 	$(RSCRIPT) $(SCRIPT_DIR)make_provenance.R $@ $(NCBI_BASE) $(RESOURCES)
+
+# ── Upload ────────────────────────────────────────────────────────────────────
+# Requires RCLONE_CONFIG_DIR and PARQUET_DIR to be set in the environment.
+# Run after `make all` to push parquet files and provenance.json to OSN.
+
+upload: $(PARQUET_FILES) provenance.json
+	sh $(SCRIPT_DIR)doall.sh
 
 # ── Housekeeping ──────────────────────────────────────────────────────────────
 
