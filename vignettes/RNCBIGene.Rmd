@@ -181,13 +181,11 @@ mapIdsNG(
 ## Ensembl to Symbol
 
 Ensembl lookups join `gene2ensembl.parquet` with `gene_info.parquet` on
-`GeneID`; the join runs entirely in duckdb.  This requires `gene2ensembl.parquet`
-to be present in the OSN bucket (see `inst/preps/Makefile` for the conversion
-recipe).
+`GeneID`; the join runs entirely in duckdb before a single `collect()`.
 
-```{r lkensembl, eval=FALSE}
+```{r lkensembl}
 mapIdsNG(
-  keys    = c("ENSG00000073605", "ENSG00000141510"),
+  keys    = c("ENSG00000073605", "ENSG00000141510", "ENSG00000012048"),
   keytype = "Ensembl",
   column  = "Symbol"
 )
@@ -195,9 +193,10 @@ mapIdsNG(
 
 ## Attaching annotation to a SummarizedExperiment
 
-The `airway` dataset carries Ensembl gene identifiers as row names.  Once
-`gene2ensembl.parquet` is available, map locations can be appended with a
-single `mapIdsNG()` call per annotation column:
+The `airway` dataset carries Ensembl gene identifiers as row names.
+Map locations can be appended with a single `mapIdsNG()` call per annotation
+column (evaluation blocked pending a fix to `.feature` resolution in
+`tidySummarizedExperiment`):
 
 ```{r lktse, eval=FALSE}
 data(airway, package = "airway")
