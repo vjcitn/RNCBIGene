@@ -11,6 +11,14 @@ parquet_file <- args[2]
 library(DBI)
 library(duckdb)
 
+# Cache the httpfs extension permanently and ensure duckdb can create its
+# temp workspace under tempdir() (it needs the parent dir to pre-exist).
+ext_dir  <- tools::R_user_dir("RNCBIGene", "data")
+duck_tmp <- file.path(tempdir(), "duckdb")
+dir.create(ext_dir,  recursive = TRUE, showWarnings = FALSE)
+dir.create(duck_tmp, recursive = TRUE, showWarnings = FALSE)
+options(duckdb.extension_directory = ext_dir)
+
 con <- dbConnect(duckdb())
 on.exit(dbDisconnect(con, shutdown = TRUE))
 
