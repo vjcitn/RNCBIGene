@@ -74,6 +74,8 @@ provenance.json: $(PARQUET_FILES)
 # Run after `make all` to push parquet files and provenance.json to OSN.
 
 upload: $(PARQUET_FILES) provenance.json
+	$(if $(RCLONE_CONFIG_DIR),,$(error RCLONE_CONFIG_DIR is not set -- export it before running make upload))
+	$(if $(PARQUET_DIR),,$(error PARQUET_DIR is not set -- export it before running make upload))
 	sh $(SCRIPT_DIR)doall.sh
 
 # ── Housekeeping ──────────────────────────────────────────────────────────────
