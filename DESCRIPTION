@@ -24,7 +24,8 @@ Suggests:
     SummarizedExperiment,
     airway,
     tidySummarizedExperiment,
-    org.Hs.eg.db
+    org.Hs.eg.db,
+    jsonlite
 Imports: arrow, dplyr, DBI, BiocFileCache, duckdb, utils
 License: Artistic-2.0
 VignetteBuilder: knitr
