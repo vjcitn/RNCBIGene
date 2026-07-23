@@ -50,16 +50,9 @@ join_ncbi_gene <- function(local_df, by, resource = "gene_info",
   )
 }
 
-#' remove registered local data frame tables from the duckdb session
-#'
-#' \code{join_ncbi_gene()} registers each local data frame in the duckdb session
-#' via \code{duckdb::duckdb_register()}.  Call \code{gc_ncbi_tables()} to
-#' unregister all such tables and free the associated memory.
-#' @return invisibly, the names of the tables that were removed
-#' @examples
-#' gc_ncbi_tables()
-#' @export
-gc_ncbi_tables <- function() {
+# Unregister all local data frames registered by join_ncbi_gene().
+# Called automatically by ncbi_gene_con() when the connection is rebuilt.
+.gc_ncbi_tables <- function() {
   tbls <- .rncbigene_env$registered_tables
   if (is.null(tbls) || length(tbls) == 0L) return(invisible(character(0)))
   con <- ncbi_gene_con()

@@ -57,6 +57,7 @@ ngurl <- function(gres = "gene2pubmed") {
 ncbi_gene_con <- function() {
   if (!exists("con", envir = .rncbigene_env) ||
       !DBI::dbIsValid(.rncbigene_env$con)) {
+    .gc_ncbi_tables()   # clear any registered tables from the old connection
     ext_dir <- tools::R_user_dir("RNCBIGene", "data")
     if (!dir.exists(ext_dir))
       dir.create(ext_dir, recursive = TRUE)
