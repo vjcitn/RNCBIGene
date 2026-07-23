@@ -354,6 +354,48 @@ To refresh a cached resource (e.g. after uploading a new parquet to the bucket):
 cache_by_taxon(9606L, resources = "gene_info", force = TRUE)
 ```
 
+## Freezing a snapshot for reproducibility
+
+A live cache entry can be overwritten at any time by a `force=TRUE` call to
+`cache_by_taxon()`.  To preserve a specific version of the data for
+reproducibility — e.g. when publishing an analysis — use
+`freeze_taxon_cache()`.  It makes a physical copy of each live cached parquet
+under an identifying tag.  Frozen entries are never removed by
+`clear_taxon_cache()`.
+
+```{r lkfreeze, eval=FALSE}
+# after cache_by_taxon(9606L) has been called:
+freeze_taxon_cache(9606L, tag = "paper_2026_07")
+```
+
+Frozen snapshots appear in `taxon_cache_info()` alongside live entries:
+
+```{r lkfreezeinfo}
+taxon_cache_info()
+```
+
+To query a frozen snapshot, pass `freeze_tag` to `open_ncbi_gene()` — or to
+any function that calls it.  The function stops with an informative message if
+the tag does not exist:
+
+```{r lkfreezeuse, eval=FALSE}
+open_ncbi_gene("gene_info", taxid = 9606L, freeze_tag = "paper_2026_07") |>
+  dplyr::filter(Symbol %in% c("TP53", "BRCA1")) |>
+  dplyr::select(Symbol, GeneID, map_location) |>
+  dplyr::collect()
+
+# propagates through join_ncbi_gene and mapIdsNG too:
+mapIdsNG(keys = c("TP53", "BRCA1"), keytype = "Symbol", column = "GeneID",
+         taxid = 9606L)   # uses live cache or remote, not the frozen snapshot
+```
+
+Duplicate tags are rejected unless `force=TRUE`:
+
+```{r lkfreezedupe, eval=FALSE}
+freeze_taxon_cache(9606L, tag = "paper_2026_07")          # error: tag exists
+freeze_taxon_cache(9606L, tag = "paper_2026_07", force = TRUE)  # OK
+```
+
 # Session information
 
 ```{r lksess}

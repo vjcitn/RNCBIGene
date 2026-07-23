@@ -96,8 +96,45 @@ have access to annotation mappings in tidyverse-style programming.
 8 Wed, 22 Jul 2026 06:10:14 GMT
 ```
 
+# Local caching and reproducibility
+
+## Caching for offline or high-performance use
+
+`cache_by_taxon()` performs a one-time filter of each remote parquet to a
+single taxon and stores the result locally in `BiocFileCache`.  After that,
+`open_ncbi_gene()` — and every function that calls it — routes to the local
+file with no change to the API.
+
+```r
+cache_by_taxon(9606L)              # human: all eight resources (one-time, slow)
+cache_by_taxon(10090L)             # mouse
+
+taxon_cache_info(9606L)            # list cached entries for human
+clear_taxon_cache(9606L)           # remove live cache, route back to OSN
+```
+
+## Freezing a snapshot for reproducibility
+
+`freeze_taxon_cache()` makes a physical copy of the current live cache under
+an identifying tag.  Frozen entries survive `clear_taxon_cache()` and can
+only be removed explicitly.  Duplicate tags are rejected unless `force=TRUE`.
+
+```r
+freeze_taxon_cache(9606L, tag = "paper_2026_07")   # snapshot current human cache
+
+# query the frozen version via freeze_tag=
+open_ncbi_gene("gene_info", taxid = 9606L, freeze_tag = "paper_2026_07") |>
+  dplyr::filter(Symbol == "TP53") |>
+  dplyr::select(Symbol, GeneID, map_location) |>
+  dplyr::collect()
+```
+
+`open_ncbi_gene()` stops with a clear message if the requested tag is not
+found, making broken reproducibility pipelines fail loudly rather than
+silently falling back to a different data version.
+
 # Construction of the package and web resources
 
 See `inst/preps`.
 
-![schematic](man/figures/annowk2.png)
+![schematic](man/figures/wf.png)
