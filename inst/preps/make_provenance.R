@@ -15,12 +15,13 @@ converted <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
 
 get_last_modified <- function(resource, base) {
   url <- sprintf("%s/%s.gz", base, resource)
+  # curlGetHeaders() sends a HEAD request using base R (no curl binary needed).
   headers <- tryCatch(
-    system(sprintf("curl -sI '%s'", url), intern = TRUE),
+    curlGetHeaders(url, redirect = TRUE),
     error = function(e) character(0))
-  lm <- grep("^Last-Modified:", headers, value = TRUE, ignore.case = TRUE)[1]
+  lm <- grep("^last-modified:", headers, value = TRUE, ignore.case = TRUE)[1]
   if (is.na(lm)) return(NA_character_)
-  trimws(sub("^Last-Modified:\\s*", "", lm, ignore.case = TRUE))
+  trimws(sub("^last-modified:\\s*", "", lm, ignore.case = TRUE))
 }
 
 message("Fetching Last-Modified headers from NCBI FTP ...")

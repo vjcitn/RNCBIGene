@@ -1,2 +1,7 @@
 /doc/
 /Meta/
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+_pkgdown/

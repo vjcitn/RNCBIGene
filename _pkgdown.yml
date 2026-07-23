@@ -2,3 +2,34 @@ url: https://github.com/vjcitn/RNCBIGene
 template:
   bootstrap: 5
 
+reference:
+  - title: Remote queries
+    desc: Open lazy duckdb connections to parquet resources in the OSN bucket.
+    contents:
+      - open_ncbi_gene
+      - ncbi_gene_fields
+      - join_ncbi_gene
+      - mapIdsNG
+
+  - title: Bucket metadata
+    desc: Discover what resources are available and inspect provenance.
+    contents:
+      - available_ncbi_parquet
+      - ncbi_parquet_info
+
+  - title: Local caching
+    desc: >
+      Cache taxon-filtered parquets in BiocFileCache for offline or
+      high-performance use. After caching, open_ncbi_gene() routes
+      to local files transparently.
+    contents:
+      - cache_by_taxon
+      - taxon_cache_info
+      - clear_taxon_cache
+      - freeze_taxon_cache
+
+  - title: Session management
+    desc: Manage the persistent duckdb connection.
+    contents:
+      - ncbi_gene_con
+      - is_online
