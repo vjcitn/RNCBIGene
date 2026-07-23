@@ -1,7 +1,9 @@
 #' join a local data frame to a remote NCBI Gene parquet resource
 #' @param local_df data.frame to join against the remote resource
-#' @param by character vector of column name(s) to join on
-#' @param resource character(1) parquet resource name, with or without .parquet suffix
+#' @param by character vector of column name(s) to join on; must exist in both
+#'   \code{local_df} and the remote resource
+#' @param resource character(1) parquet resource name, with or without .parquet suffix;
+#'   must be one of \code{available_ncbi_parquet()}
 #' @param taxid integer(1) or NULL; when non-NULL, pre-filters the remote resource to this taxonomy ID
 #' @param type character(1) "left" (default) or "inner"
 #' @return lazy dplyr::tbl -- pipe select/filter/collect as needed
@@ -17,6 +19,20 @@
 #' @export
 join_ncbi_gene <- function(local_df, by, resource = "gene_info",
                             taxid = NULL, type = "left") {
+  missing_local <- setdiff(by, names(local_df))
+  if (length(missing_local) > 0)
+    stop(sprintf("column(s) not found in local_df: %s",
+                 paste(missing_local, collapse = ", ")))
+
+  remote_fields <- ncbi_gene_fields(resource)$column_name
+  missing_remote <- setdiff(by, remote_fields)
+  if (length(missing_remote) > 0)
+    stop(sprintf(
+      "column(s) not found in '%s': %s\nAvailable fields: %s",
+      sub("\\.parquet$", "", resource),
+      paste(missing_remote, collapse = ", "),
+      paste(remote_fields, collapse = ", ")))
+
   con <- ncbi_gene_con()
   tmp <- paste0("local_", gsub("[^A-Za-z0-9]", "_", basename(tempfile())))
   DBI::dbWriteTable(con, tmp, local_df, overwrite = TRUE)

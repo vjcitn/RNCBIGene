@@ -12,7 +12,7 @@ remote_gene_query(
 )
 }
 \arguments{
-\item{gres}{name of a gene resource, no suffix, see available_gene_parquet vector (unexported)}
+\item{gres}{name of a gene resource, no suffix}
 
 \item{qual}{a SQL fragment used to qualify a select * clause}
 

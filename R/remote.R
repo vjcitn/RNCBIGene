@@ -5,6 +5,14 @@ ngurl <- function(gres = "gene2pubmed") {
   sprintf("https://mghp.osn.xsede.org/bir190004-bucket01/BiocParquetNCBI/%s.parquet", gres)
 }
 
+# Session-cached resource names (without .parquet suffix) to avoid a network
+# round-trip on every open_ncbi_gene() / join_ncbi_gene() call.
+.ncbi_resource_names <- function() {
+  if (!exists("resources", envir = .rncbigene_env))
+    .rncbigene_env$resources <- sub("\\.parquet$", "", available_ncbi_parquet())
+  .rncbigene_env$resources
+}
+
 #' get or create a persistent duckdb connection with httpfs loaded
 #'
 #' The duckdb httpfs extension is cached in a permanent user directory
@@ -27,6 +35,27 @@ ncbi_gene_con <- function() {
   .rncbigene_env$con
 }
 
+#' list the fields available for a remote NCBI Gene parquet resource
+#'
+#' Returns the column names and duckdb types for any resource in the OSN bucket.
+#' Useful for discovering what fields can be passed to \code{select} or used as
+#' \code{by} keys in \code{join_ncbi_gene()}.
+#' @param resource character(1) resource name, with or without .parquet suffix
+#' @return data.frame with columns \code{column_name} and \code{column_type}
+#' @examples
+#' if (is_online()) {
+#'   ncbi_gene_fields("gene_info")
+#'   ncbi_gene_fields("gene2go")
+#' }
+#' @export
+ncbi_gene_fields <- function(resource = "gene_info") {
+  gres  <- sub("\\.parquet$", "", resource)
+  open_ncbi_gene(gres)           # validates resource name, creates VIEW
+  vname <- paste0("v_", gsub("[^A-Za-z0-9]", "_", gres))
+  res   <- DBI::dbGetQuery(ncbi_gene_con(), sprintf("DESCRIBE %s", vname))
+  res[, c("column_name", "column_type")]
+}
+
 #' open a lazy dplyr tbl over a remote NCBI Gene parquet resource
 #' @param resource character(1) parquet resource name, with or without .parquet suffix
 #' @param taxid integer(1) or NULL; when non-NULL, pre-filters to this taxonomy ID in SQL
@@ -40,8 +69,13 @@ ncbi_gene_con <- function() {
 #' }
 #' @export
 open_ncbi_gene <- function(resource = "gene_info", taxid = NULL) {
-  con   <- ncbi_gene_con()
   gres  <- sub("\\.parquet$", "", resource)
+  avail <- .ncbi_resource_names()
+  if (!gres %in% avail)
+    stop(sprintf(
+      "'%s' is not an available resource.\nCall available_ncbi_parquet() to see options.",
+      gres))
+  con   <- ncbi_gene_con()
   url   <- ngurl(gres)
   vname <- paste0("v_", gsub("[^A-Za-z0-9]", "_", gres))
   DBI::dbExecute(con, sprintf(
@@ -54,7 +88,7 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL) {
 
 #' use duckdb to query NCBI Gene data in OSN bucket
 #' @importFrom duckdb duckdb
-#' @param gres name of a gene resource, no suffix, see available_gene_parquet vector (unexported)
+#' @param gres name of a gene resource, no suffix
 #' @param qual a SQL fragment used to qualify a select * clause
 #' @param tname character(1) arbitrary name to use for internal sql table
 #' @param collect logical(1) if TRUE returns a data.frame (legacy behavior); default FALSE returns lazy tbl

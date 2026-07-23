@@ -15,9 +15,11 @@ join_ncbi_gene(
 \arguments{
 \item{local_df}{data.frame to join against the remote resource}
 
-\item{by}{character vector of column name(s) to join on}
+\item{by}{character vector of column name(s) to join on; must exist in both
+\code{local_df} and the remote resource}
 
-\item{resource}{character(1) parquet resource name, with or without .parquet suffix}
+\item{resource}{character(1) parquet resource name, with or without .parquet suffix;
+must be one of \code{available_ncbi_parquet()}}
 
 \item{taxid}{integer(1) or NULL; when non-NULL, pre-filters the remote resource to this taxonomy ID}
 
