@@ -9,12 +9,14 @@
 #'   in the OSN bucket.
 #' @examples
 #' if (is_online()) {
-#'   mapIdsNG()
+#'   mapIdsNG(keys = c("ORMDL3", "TP53", "XyZZY"), keytype = "Symbol",
+#'            column = "GeneID")
 #' }
 #' @export
-mapIdsNG <- function(taxid = 9606L, keys = c("ORMDL3","TP53","GSDMB","XyZZY"),
+mapIdsNG <- function(taxid = 9606L, keys = character(0),
                      keytype = "Symbol", column = "GeneID") {
   stopifnot(length(column) == 1 && is.atomic(column))
+  if (length(keys) == 0L) stop("keys must be a non-empty character vector")
   if (!keytype %in% c("Symbol", "GeneID", "Ensembl"))
     stop(sprintf("%s keytype not supported, file issue", keytype))
 

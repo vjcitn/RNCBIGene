@@ -139,20 +139,26 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL, freeze_tag = NU
   tbl
 }
 
-#' use duckdb to query NCBI Gene data in OSN bucket
+#' use duckdb to query NCBI Gene data in OSN bucket (deprecated)
+#'
+#' Deprecated.  Use \code{\link{open_ncbi_gene}()} instead, which returns a
+#' composable lazy tbl and avoids raw SQL string construction.
 #' @importFrom duckdb duckdb
 #' @param gres name of a gene resource, no suffix
-#' @param qual a SQL fragment used to qualify a select * clause
-#' @param tname character(1) arbitrary name to use for internal sql table
-#' @param collect logical(1) if TRUE returns a data.frame (legacy behavior); default FALSE returns lazy tbl
-#' @note Uses a persistent duckdb connection via ncbi_gene_con(). For composable lazy queries prefer open_ncbi_gene().
+#' @param qual a SQL fragment appended verbatim to the SELECT; no sanitisation
+#'   is performed
+#' @param tname character(1) view name for the internal query
+#' @param collect logical(1) if TRUE returns a data.frame; default FALSE returns
+#'   lazy tbl
 #' @examples
 #' if (is_online()) {
+#'   # Prefer: open_ncbi_gene("gene2pubmed") |> head(5) |> dplyr::collect()
 #'   remote_gene_query(qual = 'where "#tax_id" = 9606 limit 10') |> dplyr::collect()
 #' }
 #' @export
 remote_gene_query <- function(gres = "gene2pubmed", qual = "limit 5",
                                tname = basename(tempfile()), collect = FALSE) {
+  .Deprecated("open_ncbi_gene")
   pmd <- ngurl(gres)
   con <- ncbi_gene_con()
   # CREATE OR REPLACE VIEW is idempotent and stores no data, avoiding

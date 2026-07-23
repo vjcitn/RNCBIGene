@@ -2,7 +2,7 @@
 % Please edit documentation in R/remote.R
 \name{remote_gene_query}
 \alias{remote_gene_query}
-\title{use duckdb to query NCBI Gene data in OSN bucket}
+\title{use duckdb to query NCBI Gene data in OSN bucket (deprecated)}
 \usage{
 remote_gene_query(
   gres = "gene2pubmed",
@@ -14,20 +14,21 @@ remote_gene_query(
 \arguments{
 \item{gres}{name of a gene resource, no suffix}
 
-\item{qual}{a SQL fragment used to qualify a select * clause}
+\item{qual}{a SQL fragment appended verbatim to the SELECT; no sanitisation
+is performed}
 
-\item{tname}{character(1) arbitrary name to use for internal sql table}
+\item{tname}{character(1) view name for the internal query}
 
-\item{collect}{logical(1) if TRUE returns a data.frame (legacy behavior); default FALSE returns lazy tbl}
+\item{collect}{logical(1) if TRUE returns a data.frame; default FALSE returns
+lazy tbl}
 }
 \description{
-use duckdb to query NCBI Gene data in OSN bucket
-}
-\note{
-Uses a persistent duckdb connection via ncbi_gene_con(). For composable lazy queries prefer open_ncbi_gene().
+Deprecated.  Use \code{\link{open_ncbi_gene}()} instead, which returns a
+composable lazy tbl and avoids raw SQL string construction.
 }
 \examples{
 if (is_online()) {
+  # Prefer: open_ncbi_gene("gene2pubmed") |> head(5) |> dplyr::collect()
   remote_gene_query(qual = 'where "#tax_id" = 9606 limit 10') |> dplyr::collect()
 }
 }

@@ -6,7 +6,7 @@
 \usage{
 mapIdsNG(
   taxid = 9606L,
-  keys = c("ORMDL3", "TP53", "GSDMB", "XyZZY"),
+  keys = character(0),
   keytype = "Symbol",
   column = "GeneID"
 )
@@ -31,6 +31,7 @@ All filtering is pushed to duckdb before a single collect() retrieves only
 }
 \examples{
 if (is_online()) {
-  mapIdsNG()
+  mapIdsNG(keys = c("ORMDL3", "TP53", "XyZZY"), keytype = "Symbol",
+           column = "GeneID")
 }
 }
