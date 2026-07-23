@@ -57,6 +57,24 @@ test_that("open_ncbi_gene retains #tax_id when taxid is NULL", {
   expect_true("#tax_id" %in% cols)
 })
 
+test_that("joining two taxid-filtered resources produces no #tax_id.x / #tax_id.y", {
+  skip_if_offline()
+  local_ids <- data.frame(GeneID = c(94103L, 7157L))
+  go_tbl <- join_ncbi_gene(local_ids, by = "GeneID",
+                            resource = "gene2go", taxid = 9606L) |>
+    dplyr::select(GeneID, GO_ID, GO_term) |>
+    dplyr::collect()
+  refseq_tbl <- join_ncbi_gene(local_ids, by = "GeneID",
+                                resource = "gene2refseq", taxid = 9606L) |>
+    dplyr::select(GeneID, RNA_nucleotide_accession.version) |>
+    dplyr::filter(.data[["RNA_nucleotide_accession.version"]] != "-") |>
+    dplyr::collect()
+  combined <- dplyr::left_join(go_tbl, refseq_tbl, by = "GeneID",
+                               relationship = "many-to-many")
+  expect_false("#tax_id.x" %in% colnames(combined))
+  expect_false("#tax_id.y" %in% colnames(combined))
+})
+
 test_that("open_ncbi_gene taxid filter reduces rows vs no filter", {
   skip_if_offline()
   n_human <- open_ncbi_gene("gene_info", taxid = 9606L) |>
