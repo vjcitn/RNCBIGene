@@ -5,10 +5,16 @@
 <url><loc>https://github.com/vjcitn/RNCBIGene/authors.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/index.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/reference/NGparq.html</loc></url>
+<url><loc>https://github.com/vjcitn/RNCBIGene/reference/available_ncbi_parquet.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/reference/geneFromCache.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/reference/index.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/reference/is_online.html</loc></url>
+<url><loc>https://github.com/vjcitn/RNCBIGene/reference/join_ncbi_gene.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/reference/mapIdsNG.html</loc></url>
+<url><loc>https://github.com/vjcitn/RNCBIGene/reference/ncbi_gene_con.html</loc></url>
+<url><loc>https://github.com/vjcitn/RNCBIGene/reference/ncbi_gene_fields.html</loc></url>
+<url><loc>https://github.com/vjcitn/RNCBIGene/reference/ncbi_parquet_info.html</loc></url>
+<url><loc>https://github.com/vjcitn/RNCBIGene/reference/open_ncbi_gene.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/reference/print.NGparq.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/reference/processDbx.html</loc></url>
 <url><loc>https://github.com/vjcitn/RNCBIGene/reference/processDbx1.html</loc></url>

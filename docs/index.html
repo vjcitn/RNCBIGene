@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>High-performance data representations of gene annotations from NCBI • RNCBIGene</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="High-performance data representations of gene annotations from NCBI">
 <meta name="description" content="This package is based on transforming key textual resources from NCBI Gene to parquet. Resources from May 2025 were made available in an NSF Open Storage Network bucket. This package illustrates the use of standard and tidyverse-oriented approaches to querying and using annotation on genes for all organisms covered by NCBI Gene.">
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">RNCBIGene</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,7 @@
 <div class="section level1">
 <h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h1>
-<p><code>devtools::install_github("vjcitn/RNCBIGene")</code></p>
+<p><code>BiocManager::install("vjcitn/RNCBIGene")</code></p>
 </div>
 <div class="section level1">
 <h1 id="purposes">Purposes<a class="anchor" aria-label="anchor" href="#purposes"></a>
@@ -63,42 +63,23 @@
 <h2 id="simplified-unified-annotation-for-all-organisms-addressed-by-ncbi">Simplified, unified annotation for all organisms addressed by NCBI<a class="anchor" aria-label="anchor" href="#simplified-unified-annotation-for-all-organisms-addressed-by-ncbi"></a>
 </h2>
 <p>The <code>org.*.*.db</code> packages are powerful and reliable but have a complex stack of schemata and scripts for generating organism-specific packages.</p>
-<p>This package works the basis of a one-line transformation to parquet of compressed text from NCBI. The parquet files were placed in an NSF Open Storage Network bucket.</p>
-<p>The <code>geneFromCache</code> function retrieves and caches the parquet files.</p>
-<pre><code>&gt; example(geneFromCache)
-
-gnFrmC&gt; gi = geneFromCache("gene_info.parquet")
-
-gnFrmC&gt; arrow::open_dataset(gi) |&gt; dplyr::filter(`#tax_id`==9606) |&gt; head() |&gt; dplyr::collect()
-# A tibble: 6 × 16
-  `#tax_id` GeneID Symbol LocusTag Synonyms      dbXrefs chromosome map_location
-      &lt;int&gt;  &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;         &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;
-1      9606      1 A1BG   -        A1B|ABG|GAB|… MIM:13… 19         19q13.43
-2      9606      2 A2M    -        A2MD|CPAMD5|… MIM:10… 12         12p13.31
-3      9606      3 A2MP1  -        A2MP          HGNC:H… 12         12p13.31
-4      9606      9 NAT1   -        AAC1|MNAT|NA… MIM:10… 8          8p22
-5      9606     10 NAT2   -        AAC2|NAT-2|P… MIM:61… 8          8p22
-6      9606     11 NATP   -        AACP|NATP1    HGNC:H… 8          8p22
-# ℹ 8 more variables: description &lt;chr&gt;, type_of_gene &lt;chr&gt;,
-#   Symbol_from_nomenclature_authority &lt;chr&gt;,
-#   Full_name_from_nomenclature_authority &lt;chr&gt;, Nomenclature_status &lt;chr&gt;,
-#   Other_designations &lt;chr&gt;, Modification_date &lt;int&gt;, Feature_type &lt;chr&gt;</code></pre>
-<p>Caching the resources involves transfers of 6GB of parquet; if this is too laborious, remote queries can be executed for specific needs:</p>
-<pre><code>&gt; x = remote_gene_query(gres="gene_info", qual='where "#tax_id" = 9606 limit 10')
-&gt; x
-# A tibble: 10 × 16
-   `#tax_id` GeneID Symbol   LocusTag Synonyms   dbXrefs chromosome map_location
-       &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;
- 1      9606      1 A1BG     -        A1B|ABG|G… MIM:13… 19         19q13.43
- 2      9606      2 A2M      -        A2MD|CPAM… MIM:10… 12         12p13.31
- 3      9606      3 A2MP1    -        A2MP       HGNC:H… 12         12p13.31
- 4      9606      9 NAT1     -        AAC1|MNAT… MIM:10… 8          8p22
- 5      9606     10 NAT2     -        AAC2|NAT-… MIM:61… 8          8p22
- 6      9606     11 NATP     -        AACP|NATP1 HGNC:H… 8          8p22
- 7      9606     12 SERPINA3 -        AACT|ACT|… MIM:10… 14         14q32.13
- 8      9606     13 AADAC    -        CES5A1|DAC MIM:60… 3          3q25.1
- 9      9606     14 AAMP     -        -          MIM:60… 2          2q35
-10      9606     15 AANAT    -        DSPS|SNAT  MIM:60… 17         17q25.1
+<p>This package works on the basis of very simple transformations to parquet format of compressed text from NCBI. The parquet files are placed in an NSF Open Storage Network bucket. This package includes scripting that carries out the entire workflow of retrieval from NCBI, transformation to parquet, movement to cloud storage, and recording of provenance.</p>
+<p>Code is available to transfer resources to local cache, but the primary use cases are expected to be solved using DuckDb over HTTPS.</p>
+<pre><code>&gt; remote_gene_query(gres="gene_info", qual='where "#tax_id" = 9606 limit 10')
+# A query:  ?? x 16
+# Database: DuckDB 1.5.4 [vincentcarey@Darwin 24.6.0:R 4.6.1/:memory:]
+   `#tax_id` GeneID Symbol LocusTag Synonyms     dbXrefs chromosome map_location
+       &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;
+ 1      9606   4038 LRP4   -        CLSS|CMS17|… MIM:60… 11         11p11.2
+ 2      9606   4040 LRP6   -        ADCAD2|EVR8… MIM:60… 12         12p13.2
+ 3      9606   4041 LRP5   -        BMND1|EVR1|… MIM:60… 11         11q13.2
+ 4      9606   4043 LRPAP1 -        A2MRAP|A2RA… MIM:10… 4          4p16.3
+ 5      9606   4045 LSAMP  -        IGLON3|LAMP  MIM:60… 3          3q13.31
+ 6      9606   4046 LSP1   -        WP34|pp52    MIM:15… 11         11p15.5
+ 7      9606   4047 LSS    -        APMR4|CTRCT… MIM:60… 21         21q22.3
+ 8      9606   4048 LTA4H  -        -            MIM:15… 12         12q23.1
+ 9      9606   4049 LTA    -        LT|TNFB|TNF… MIM:15… 6          6p21.33
+10      9606   4050 LTB    -        TNFC|TNFSF3… MIM:60… 6          6p21.33
 # ℹ 8 more variables: description &lt;chr&gt;, type_of_gene &lt;chr&gt;,
 #   Symbol_from_nomenclature_authority &lt;chr&gt;,
 #   Full_name_from_nomenclature_authority &lt;chr&gt;, Nomenclature_status &lt;chr&gt;,
@@ -107,66 +88,57 @@ gnFrmC&gt; arrow::open_dataset(gi) |&gt; dplyr::filter(`#tax_id`==9606) |&gt; he
 <div class="section level2">
 <h2 id="annotation-in-a-tidyverse-style">Annotation in a tidyverse style<a class="anchor" aria-label="anchor" href="#annotation-in-a-tidyverse-style"></a>
 </h2>
-<p>By retaining the “flat file” model of the original all-organism annotation content at NCBI, we may more straightforwardly have access to annotation mappings in tidyverse-style programming. As an example, given TCGA expression data annotated with gene symbols, we can add the Gene (Entrez) Ids as follows.</p>
-<pre><code>&gt; suppressMessages({
-+ gbt = curatedTCGAData(diseaseCode="GBM",
-+   assays="RNASeq2GeneNorm", version="2.0.1", dry.run=FALSE,
-+   verbose=FALSE)
-+ })
-&gt; gbtr = experiments(gbt)[[1]]
-&gt; library(tidyomics)
-&gt; library(RNCBIGene)
-&gt; gbtr[1:10,]
-# A SummarizedExperiment-tibble abstraction: 1,660 × 2
-# Features=10 | Samples=166 | Assays=
-   .feature .sample
-   &lt;chr&gt;    &lt;chr&gt;
- 1 A1BG     TCGA-02-0047-01A-01R-1849-01
- 2 A1CF     TCGA-02-0047-01A-01R-1849-01
- 3 A2BP1    TCGA-02-0047-01A-01R-1849-01
- 4 A2LD1    TCGA-02-0047-01A-01R-1849-01
- 5 A2ML1    TCGA-02-0047-01A-01R-1849-01
- 6 A2M      TCGA-02-0047-01A-01R-1849-01
- 7 A4GALT   TCGA-02-0047-01A-01R-1849-01
- 8 A4GNT    TCGA-02-0047-01A-01R-1849-01
- 9 AAA1     TCGA-02-0047-01A-01R-1849-01
-10 AAAS     TCGA-02-0047-01A-01R-1849-01
-# ℹ 190 more rows
-# ℹ Use `print(n = ...)` to see more rows
-
-&gt; gbtr2 = gbtr[1:1000,] |&gt;
-+    mutate(entrez = mapIdsNG(keys=.feature)$GeneID)
-&gt; gbtr2[1:10,]
-# A SummarizedExperiment-tibble abstraction: 1,660 × 3
-# Features=10 | Samples=166 | Assays=
-   .feature .sample                         entrez
-   &lt;chr&gt;    &lt;chr&gt;                            &lt;dbl&gt;
- 1 A1BG     TCGA-02-0047-01A-01R-1849-01         1
- 2 A1CF     TCGA-02-0047-01A-01R-1849-01     29974
- 3 A2BP1    TCGA-02-0047-01A-01R-1849-01        NA
- 4 A2LD1    TCGA-02-0047-01A-01R-1849-01        NA
- 5 A2ML1    TCGA-02-0047-01A-01R-1849-01    144568
- 6 A2M      TCGA-02-0047-01A-01R-1849-01         2
- 7 A4GALT   TCGA-02-0047-01A-01R-1849-01     53947
- 8 A4GNT    TCGA-02-0047-01A-01R-1849-01     51146
- 9 AAA1     TCGA-02-0047-01A-01R-1849-01 100329167
-10 AAAS     TCGA-02-0047-01A-01R-1849-01      8086
-# ℹ 190 more rows
-# ℹ Use `print(n = ...)` to see more rows</code></pre>
-<p>The restriction to the first 1000 features in the example above arises because an unrestricted attempt fails for a reason that is currently obscure.</p>
+<p>By retaining the “flat file” model of the original all-organism annotation content at NCBI, we may more straightforwardly have access to annotation mappings in tidyverse-style programming.</p>
+<pre><code>&gt; c1 = open_ncbi_gene("gene2go", taxid=10090)
+&gt; c2 = open_ncbi_gene("gene_info", taxid=10090)
+&gt; c2 |&gt; filter(Symbol == "Lilrb4a") |&gt; left_join(c1, by="GeneID") |&gt;
++    select(Category, GO_term) |&gt; distinct()
+# A query:  ?? x 2
+# Database: DuckDB 1.5.4 [vincentcarey@Darwin 24.6.0:R 4.6.1/:memory:]
+   Category  GO_term
+   &lt;chr&gt;     &lt;chr&gt;
+ 1 Function  integrin binding
+ 2 Function  protein phosphatase binding
+ 3 Process   response to wounding
+ 4 Component cell surface
+ 5 Function  immune receptor activity
+ 6 Component external side of plasma membrane
+ 7 Component plasma membrane
+ 8 Process   cellular response to lipopolysaccharide
+ 9 Process   negative regulation of monocyte activation
+10 Process   CD8-positive, alpha-beta T cell proliferation</code></pre>
 </div>
 </div>
 <div class="section level1">
-<h1 id="available-resources">Available resources<a class="anchor" aria-label="anchor" href="#available-resources"></a>
+<h1 id="basic-metadata">Basic metadata<a class="anchor" aria-label="anchor" href="#basic-metadata"></a>
 </h1>
-<p>Contents of <code>https://mghp.osn.xsede.org/bir190004-bucket01/BiocParquetNCBI</code>, as retrieved on 22 Feb 2025 and then transformed to parquet (see inst/scripts for demonstration code):</p>
-<pre><code>3002338275 2025-05-17 09:28:29.618223689 gene2accession.parquet
-680657744 2025-05-15 10:31:33.209868982 gene2go.parquet
- 89080561 2025-05-15 10:37:45.825464461 gene2pubmed.parquet
-1467468877 2025-05-17 09:28:38.701230380 gene2refseq.parquet
-965232147 2025-05-15 10:33:17.845775772 gene_info.parquet
- 43279811 2025-05-17 09:28:42.882232368 gene_orthologs.parquet
-1019413239 2025-05-17 09:28:47.416233993 gene_refseq_uniprotkb_collab.parquet</code></pre>
+<pre><code>&gt; ncbi_parquet_info()
+                              resource size_bytes          bucket_modified
+1                    gene_info.parquet  951206411 2026-07-22T19:01:51.231Z
+2               gene_orthologs.parquet   62310042 2026-07-22T19:01:54.029Z
+3 gene_refseq_uniprotkb_collab.parquet  510820503 2026-07-22T19:02:15.685Z
+4               gene2accession.parquet 3111866681 2026-07-22T19:00:09.796Z
+5                 gene2ensembl.parquet  201322528 2026-07-22T19:00:14.050Z
+6                      gene2go.parquet  550607120 2026-07-22T19:00:31.108Z
+7                  gene2pubmed.parquet  115550070 2026-07-22T19:00:33.657Z
+8                  gene2refseq.parquet 1460763355 2026-07-22T19:01:18.313Z
+             ncbi_last_modified
+1 Wed, 22 Jul 2026 06:12:27 GMT
+2 Wed, 22 Jul 2026 06:14:51 GMT
+3 Tue, 21 Jul 2026 09:12:44 GMT
+4 Wed, 22 Jul 2026 06:04:29 GMT
+5 Wed, 22 Jul 2026 06:04:48 GMT
+6 Wed, 22 Jul 2026 06:06:46 GMT
+7 Wed, 22 Jul 2026 06:07:08 GMT
+8 Wed, 22 Jul 2026 06:10:14 GMT</code></pre>
+</div>
+<div class="section level1">
+<h1 id="construction-of-the-package-and-web-resources">Construction of the package and web resources<a class="anchor" aria-label="anchor" href="#construction-of-the-package-and-web-resources"></a>
+</h1>
+<p>See <code>inst/preps</code>.</p>
+<div class="figure">
+<img src="reference/figures/annowk2.png" alt=""><p class="caption">schematic</p>
+</div>
 </div>
 
   </main><aside class="col-md-3"><div class="links">
@@ -210,7 +182,7 @@ gnFrmC&gt; arrow::open_dataset(gi) |&gt; dplyr::filter(`#tax_id`==9606) |&gt; he
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

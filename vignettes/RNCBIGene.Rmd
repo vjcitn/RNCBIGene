@@ -216,24 +216,6 @@ mapIdsNG(
 )
 ```
 
-## Attaching annotation to a SummarizedExperiment
-
-The `airway` dataset carries Ensembl gene identifiers as row names.
-Map locations can be appended with a single `mapIdsNG()` call per annotation
-column (evaluation blocked pending a fix to `.feature` resolution in
-`tidySummarizedExperiment`):
-
-```{r lktse, eval=FALSE}
-data(airway, package = "airway")
-requireNamespace("tidySummarizedExperiment")
-tse <- as(airway, "tidySummarizedExperiment")
-tse <- tse |> dplyr::mutate(
-  map_location = mapIdsNG(keys = .feature, keytype = "Ensembl",
-                           column = "map_location")
-)
-head(table(SummarizedExperiment::rowData(tse)$map_location))
-```
-
 # Querying non-human organisms
 
 Because all NCBI Gene annotation for all organisms lives in the same parquet

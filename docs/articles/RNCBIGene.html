@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>RNCBIGene: NCBI Gene annotation in parquet • RNCBIGene</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="RNCBIGene: NCBI Gene annotation in parquet">
 </head>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RNCBIGene</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,18 +46,18 @@
 
 
 
-<link href="RNCBIGene_files/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<link href="RNCBIGene_files/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
 <script src="RNCBIGene_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><link href="RNCBIGene_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
-<script src="RNCBIGene_files/datatables-binding-0.33/datatables.js"></script><link href="RNCBIGene_files/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+<script src="RNCBIGene_files/datatables-binding-0.34.0/datatables.js"></script><link href="RNCBIGene_files/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
 <link href="RNCBIGene_files/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet">
-<script src="RNCBIGene_files/dt-core-1.13.6/js/jquery.dataTables.min.js"></script><link href="RNCBIGene_files/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
-<script src="RNCBIGene_files/crosstalk-1.2.1/js/crosstalk.min.js"></script><div class="row">
+<script src="RNCBIGene_files/dt-core-1.13.6/js/jquery.dataTables.min.js"></script><link href="RNCBIGene_files/crosstalk-1.2.2/css/crosstalk.min.css" rel="stylesheet">
+<script src="RNCBIGene_files/crosstalk-1.2.2/js/crosstalk.min.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>RNCBIGene: NCBI Gene annotation in parquet</h1>
                         <h4 data-toc-skip class="author">Vincent J. Carey, stvjc at channing.harvard.edu</h4>
             
-            <h4 data-toc-skip class="date">May 20, 2025</h4>
+            <h4 data-toc-skip class="date">July 22, 2026</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/vjcitn/RNCBIGene/blob/HEAD/vignettes/RNCBIGene.Rmd"><code>vignettes/RNCBIGene.Rmd</code></a></small>
       <div class="d-none name"><code>RNCBIGene.Rmd</code></div>
@@ -80,42 +80,57 @@
 <span><span class="co">## 3 ORMDL3 GO:0005783      IDA       CC    94103</span></span>
 <span><span class="co">## 4 ORMDL3 GO:0005789      IEA       CC    94103</span></span>
 <span><span class="co">## 5 ORMDL3 GO:0005886      TAS       CC    94103</span></span>
-<span><span class="co">## 6 ORMDL3 GO:0006672      IBA       BP    94103</span></span></code></pre>
-<p>With RNCBIGene, all NCBI’s GO annotations for all organisms are in a single resource. The <code>geneFromCache</code> package will retrieve an Apache Parquet representation of the gene2go.gz text resource distributed at NCBI’s FTP site. For this query, we use the knowledge the ORMDL3 has Gene ID 94103.</p>
+<span><span class="co">## 6 ORMDL3 GO:0006665      IEA       BP    94103</span></span></code></pre>
+<p>RNCBIGene takes a different approach: instead of organism-specific SQLite databases, all NCBI Gene annotation for all organisms lives in a set of Apache Parquet files on an NSF Open Storage Network bucket. Queries run through a persistent duckdb connection that reads remote parquet directly, pushing filters and column selections to the network layer before any data lands in R. The <code><a href="../reference/open_ncbi_gene.html">open_ncbi_gene()</a></code> function returns a lazy <code><a href="https://dplyr.tidyverse.org/reference/tbl.html" class="external-link">dplyr::tbl</a></code>; the user composes <code><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter()</a></code>, <code><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select()</a></code>, and <code><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect()</a></code> calls as they would with any remote dplyr backend.</p>
+<p>The duckdb <code>httpfs</code> extension required for remote parquet access is cached permanently in <code>tools::R_user_dir("RNCBIGene", "data")</code> rather than a temporary directory, so it is downloaded only once per machine. The cache location can be overridden by setting the <code>DUCKDB_EXTENSION_DIRECTORY</code> environment variable before loading the package.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/vjcitn/RNCBIGene">RNCBIGene</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="va">go_ds</span> <span class="op">=</span> <span class="fu">arrow</span><span class="fu">::</span><span class="fu"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">(</span><span class="fu"><a href="../reference/geneFromCache.html">geneFromCache</a></span><span class="op">(</span><span class="st">"gene2go.parquet"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">lkor</span> <span class="op">=</span> <span class="va">go_ds</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">`#tax_id`</span><span class="op">==</span><span class="fl">9606</span>, <span class="va">GeneID</span><span class="op">==</span><span class="fl">94103</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">lkor</span> <span class="op">=</span> <span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene2go"</span>, taxid<span class="op">=</span><span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">GeneID</span><span class="op">==</span><span class="fl">94103</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">DT</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/DT/man/datatable.html" class="external-link">datatable</a></span><span class="op">(</span><span class="va">lkor</span><span class="op">)</span></span></code></pre></div>
 <div class="datatables html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21"],[9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606,9606],[94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103],["GO:0002903","GO:0005515","GO:0005783","GO:0005789","GO:0005886","GO:0006672","GO:0006672","GO:0006686","GO:0006940","GO:0010508","GO:0010508","GO:0017059","GO:0017059","GO:0030148","GO:0030667","GO:0035579","GO:0042552","GO:0061744","GO:0090156","GO:1900060","GO:1900182"],["IMP","IPI","IDA","IEA","TAS","IBA","IMP","IEA","IEA","IDA","IMP","IBA","IDA","IBA","TAS","TAS","IEA","IEA","IBA","IMP","IDA"],["acts_upstream_of_or_within","enables","located_in","located_in","located_in","involved_in","involved_in","involved_in","involved_in","acts_upstream_of_or_within","acts_upstream_of_or_within","part_of","part_of","involved_in","located_in","located_in","involved_in","involved_in","involved_in","acts_upstream_of_or_within","acts_upstream_of_or_within"],["negative regulation of B cell apoptotic process","protein binding","endoplasmic reticulum","endoplasmic reticulum membrane","plasma membrane","ceramide metabolic process","ceramide metabolic process","sphingomyelin biosynthetic process","regulation of smooth muscle contraction","positive regulation of autophagy","positive regulation of autophagy","serine palmitoyltransferase complex","serine palmitoyltransferase complex","sphingolipid biosynthetic process","secretory granule membrane","specific granule membrane","myelination","motor behavior","intracellular sphingolipid homeostasis","negative regulation of ceramide biosynthetic process","positive regulation of protein localization to nucleus"],["28747345","20182505|32296183|33558761","12093374","-","-","-","20182505","-","-","28747345","28747345","-","20182505|25691431","-","-","-","-","-","-","25691431","28747345"],["Process","Function","Component","Component","Component","Process","Process","Process","Process","Process","Process","Component","Component","Process","Component","Component","Process","Process","Process","Process","Process"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>#tax_id<\/th>\n      <th>GeneID<\/th>\n      <th>GO_ID<\/th>\n      <th>Evidence<\/th>\n      <th>Qualifier<\/th>\n      <th>GO_term<\/th>\n      <th>PubMed<\/th>\n      <th>Category<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"#tax_id","targets":1},{"name":"GeneID","targets":2},{"name":"GO_ID","targets":3},{"name":"Evidence","targets":4},{"name":"Qualifier","targets":5},{"name":"GO_term","targets":6},{"name":"PubMed","targets":7},{"name":"Category","targets":8}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p>It is not the purpose of this package to provide pin-compatible replacements for the AnnotationDbi packages. That would be a huge effort, and material support for such an effort does not exist at this time. This package is created to explore the opportunities for simplification and performance enhancement arising from the adoption of Parquet and Arrow for annotation representation and interrogation.</p>
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18"],[94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103,94103],["GO:0002903","GO:0005515","GO:0005783","GO:0005789","GO:0005789","GO:0005886","GO:0006672","GO:0006672","GO:0010508","GO:0010508","GO:0016020","GO:0017059","GO:0017059","GO:0030667","GO:0035579","GO:0090156","GO:1900060","GO:1900182"],["IMP","IPI","IDA","EXP","IEA","TAS","IBA","IMP","IDA","IMP","IEA","IBA","IDA","TAS","TAS","IBA","IMP","IDA"],["acts_upstream_of_or_within","enables","located_in","located_in","located_in","located_in","involved_in","involved_in","acts_upstream_of_or_within","acts_upstream_of_or_within","located_in","part_of","part_of","located_in","located_in","involved_in","acts_upstream_of_or_within","acts_upstream_of_or_within"],["negative regulation of B cell apoptotic process","protein binding","endoplasmic reticulum","endoplasmic reticulum membrane","endoplasmic reticulum membrane","plasma membrane","ceramide metabolic process","ceramide metabolic process","positive regulation of autophagy","positive regulation of autophagy","membrane","serine palmitoyltransferase complex","serine palmitoyltransferase complex","secretory granule membrane","specific granule membrane","intracellular sphingolipid homeostasis","negative regulation of ceramide biosynthetic process","positive regulation of protein localization to nucleus"],["28747345","20182505|32296183|33558761|33558762","12093374","12093374","-","-","-","20182505","28747345","28747345","-","-","20182505|25691431","-","-","-","25691431","28747345"],["Process","Function","Component","Component","Component","Component","Process","Process","Process","Process","Component","Component","Component","Component","Component","Process","Process","Process"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GeneID<\/th>\n      <th>GO_ID<\/th>\n      <th>Evidence<\/th>\n      <th>Qualifier<\/th>\n      <th>GO_term<\/th>\n      <th>PubMed<\/th>\n      <th>Category<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":1},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GeneID","targets":1},{"name":"GO_ID","targets":2},{"name":"Evidence","targets":3},{"name":"Qualifier","targets":4},{"name":"GO_term","targets":5},{"name":"PubMed","targets":6},{"name":"Category","targets":7}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p>It is not the purpose of this package to provide pin-compatible replacements for the AnnotationDbi packages. This package explores the opportunities for simplification and performance enhancement arising from the adoption of Parquet and Arrow for annotation representation and interrogation.</p>
 </div>
 <div class="section level2">
 <h2 id="scope">Scope<a class="anchor" aria-label="anchor" href="#scope"></a>
 </h2>
-<p>There are seven parquet files that represent the NCBI Gene content available on February 22 2025.</p>
+<p>There are eight parquet files representing NCBI Gene content. Seven were built from May 2025 NCBI snapshots; <code>gene2ensembl</code> was added to support clean Ensembl identifier lookups.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">RNCBIGene</span><span class="fu">:::</span><span class="va">available_gene_parquet</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "gene2go.parquet"                     </span></span>
-<span><span class="co">## [2] "gene2pubmed.parquet"                 </span></span>
-<span><span class="co">## [3] "gene_info.parquet"                   </span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/available_ncbi_parquet.html">available_ncbi_parquet</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "gene_info.parquet"                   </span></span>
+<span><span class="co">## [2] "gene_orthologs.parquet"              </span></span>
+<span><span class="co">## [3] "gene_refseq_uniprotkb_collab.parquet"</span></span>
 <span><span class="co">## [4] "gene2accession.parquet"              </span></span>
-<span><span class="co">## [5] "gene2refseq.parquet"                 </span></span>
-<span><span class="co">## [6] "gene_orthologs.parquet"              </span></span>
-<span><span class="co">## [7] "gene_refseq_uniprotkb_collab.parquet"</span></span></code></pre>
-<p>Once we have cached them using <code>geneFromCache</code>, we can work with all of them “simultaneously”.</p>
-<p>Because the retrieval process is laborious, the following chunk is not evaluated. Were it to be evaluated, it would be apparent that over 720 million records of annotation are available for interrogation.</p>
+<span><span class="co">## [5] "gene2ensembl.parquet"                </span></span>
+<span><span class="co">## [6] "gene2go.parquet"                     </span></span>
+<span><span class="co">## [7] "gene2pubmed.parquet"                 </span></span>
+<span><span class="co">## [8] "gene2refseq.parquet"</span></span></code></pre>
+<p>All resources can be queried simultaneously through the persistent duckdb connection. Record counts are retrieved by pushing <code>COUNT(*)</code> to duckdb, which reads row-group metadata from parquet without fetching the data itself.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">paths</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu">RNCBIGene</span><span class="fu">:::</span><span class="va">available_gene_parquet</span>, <span class="va">geneFromCache</span><span class="op">)</span></span>
-<span><span class="va">pop</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">paths</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pop</span><span class="op">)</span> <span class="op">=</span> <span class="fu">RNCBIGene</span><span class="fu">:::</span><span class="va">available_gene_parquet</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">nrow</span><span class="op">)</span></span></code></pre></div>
-<p>For illustration, the content corresponding to four human genes on chromosome 17 has been saved in the package.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>  <span class="va">resources</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/available_ncbi_parquet.html">available_ncbi_parquet</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"\\.parquet$"</span>, <span class="st">""</span>, <span class="va">resources</span><span class="op">)</span>,</span>
+<span>    <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">tally</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">counts</span>, <span class="va">resources</span><span class="op">)</span></span>
+<span><span class="op">}</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##                    gene_info.parquet               gene_orthologs.parquet </span></span>
+<span><span class="co">##                             70797156                             18590068 </span></span>
+<span><span class="co">## gene_refseq_uniprotkb_collab.parquet               gene2accession.parquet </span></span>
+<span><span class="co">##                            124490938                            282519101 </span></span>
+<span><span class="co">##                 gene2ensembl.parquet                      gene2go.parquet </span></span>
+<span><span class="co">##                             18069267                            122971050 </span></span>
+<span><span class="co">##                  gene2pubmed.parquet                  gene2refseq.parquet </span></span>
+<span><span class="co">##                             79863715                            106157713</span></span></code></pre>
+<p>For illustration, a small subset covering four human genes on chromosome 17 is bundled with the package.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">litp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">dir</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"litparquet"</span>, package<span class="op">=</span><span class="st">"RNCBIGene"</span><span class="op">)</span>, full.names<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">litpop</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">litp</span>,</span>
-<span>    <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">)</span></span>
+<span><span class="va">litpop</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">litp</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">)</span></span>
 <span><span class="va">ns</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">basename</a></span><span class="op">(</span><span class="va">litp</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">litpop</span><span class="op">)</span> <span class="op">=</span> <span class="va">ns</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">litpop</span>, <span class="va">nrow</span><span class="op">)</span></span></code></pre></div>
@@ -133,13 +148,14 @@
 <span><span class="co">##                                    15253 </span></span>
 <span><span class="co">##                  lit.gene2refseq.parquet </span></span>
 <span><span class="co">##                                      844</span></span></code></pre>
-<p>Example: find the UniProt identifiers associated with gene ORMDL3 in humans.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pro</span> <span class="op">=</span> <span class="va">litpop</span><span class="op">[[</span><span class="st">"lit.gene2accession.parquet"</span><span class="op">]</span><span class="op">]</span> <span class="op">|&gt;</span> </span>
-<span>   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">`#tax_id`</span> <span class="op">==</span> <span class="fl">9606</span>, <span class="va">Symbol</span> <span class="op">==</span> <span class="st">"ORMDL3"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<p>Find the UniProt identifiers associated with ORMDL3:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pro</span> <span class="op">=</span> <span class="va">litpop</span><span class="op">[[</span><span class="st">"lit.gene2accession.parquet"</span><span class="op">]</span><span class="op">]</span> <span class="op">|&gt;</span></span>
+<span>   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">`#tax_id`</span> <span class="op">==</span> <span class="fl">9606</span>, <span class="va">Symbol</span> <span class="op">==</span> <span class="st">"ORMDL3"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">protein_accession.version</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="st">"-"</span><span class="op">)</span></span>
-<span><span class="va">litpop</span><span class="op">[[</span><span class="st">"lit.gene_refseq_uniprotkb_collab.parquet"</span><span class="op">]</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">NCBI_tax_id</span> <span class="op">==</span> <span class="fl">9606</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">`#NCBI_protein_accession`</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">pro</span><span class="op">)</span>  <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">litpop</span><span class="op">[[</span><span class="st">"lit.gene_refseq_uniprotkb_collab.parquet"</span><span class="op">]</span><span class="op">]</span> <span class="op">|&gt;</span></span>
+<span>   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">NCBI_tax_id</span> <span class="op">==</span> <span class="fl">9606</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">`#NCBI_protein_accession`</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">pro</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 36 × 5</span></span></span>
 <span><span class="co">##    `#NCBI_protein_accession` UniProtKB_protein_ac…¹ NCBI_tax_id UniProtKB_tax_id</span></span>
 <span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
@@ -158,59 +174,232 @@
 <span><span class="co">## <span style="color: #949494;"># ℹ 1 more variable: method &lt;chr&gt;</span></span></span></code></pre>
 </div>
 <div class="section level2">
-<h2 id="applications">Applications<a class="anchor" aria-label="anchor" href="#applications"></a>
+<h2 id="lazy-remote-queries-with-open_ncbi_gene">Lazy remote queries with <code>open_ncbi_gene()</code><a class="anchor" aria-label="anchor" href="#lazy-remote-queries-with-open_ncbi_gene"></a>
 </h2>
+<p><code><a href="../reference/open_ncbi_gene.html">open_ncbi_gene()</a></code> returns a lazy <code><a href="https://dplyr.tidyverse.org/reference/tbl.html" class="external-link">dplyr::tbl</a></code> backed by a duckdb VIEW over the remote parquet file. No data is fetched until <code><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect()</a></code> is called. Predicates passed to <code><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter()</a></code> and column lists in <code><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select()</a></code> are translated to SQL and pushed down to the parquet read, so only the requested rows and columns travel the wire.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_info"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "tbl_duckdb_connection" "tbl_dbi"               "tbl_sql"              </span></span>
+<span><span class="co">## [4] "tbl_lazy"              "tbl"</span></span></code></pre>
+<p>The object is a lazy SQL-backed tbl — inspecting it triggers a small preview fetch but does not load the full dataset.</p>
+<p>Compose a multi-step query before collecting:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_info"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Symbol</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TP53"</span>, <span class="st">"ORMDL3"</span>, <span class="st">"BRCA1"</span>, <span class="st">"GSDMB"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Symbol</span>, <span class="va">GeneID</span>, <span class="va">map_location</span>, <span class="va">type_of_gene</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 4 × 4</span></span></span>
+<span><span class="co">##   Symbol GeneID map_location type_of_gene  </span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> TP53     <span style="text-decoration: underline;">7</span>157 17p13.1      protein-coding</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> GSDMB   <span style="text-decoration: underline;">55</span>876 17q21.1      protein-coding</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> ORMDL3  <span style="text-decoration: underline;">94</span>103 17q21.1      protein-coding</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> BRCA1     672 17q21.31     protein-coding</span></span></code></pre>
+<p>The same interface works for any of the eight resources. Omitting <code>taxid</code> returns a tbl spanning all organisms:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_orthologs"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">GeneID</span> <span class="op">==</span> <span class="fl">7157L</span><span class="op">)</span> <span class="op">|&gt;</span>   <span class="co"># TP53 orthologs across all taxa</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="discovering-available-fields-with-ncbi_gene_fields">Discovering available fields with <code>ncbi_gene_fields()</code><a class="anchor" aria-label="anchor" href="#discovering-available-fields-with-ncbi_gene_fields"></a>
+</h2>
+<p>Before composing a query it is useful to know what columns a resource provides. <code><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields()</a></code> queries the duckdb schema for any resource and returns a data frame of column names and their duckdb types — no data rows are fetched.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields</a></span><span class="op">(</span><span class="st">"gene_info"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##                              column_name column_type</span></span>
+<span><span class="co">## 1                                #tax_id      BIGINT</span></span>
+<span><span class="co">## 2                                 GeneID      BIGINT</span></span>
+<span><span class="co">## 3                                 Symbol     VARCHAR</span></span>
+<span><span class="co">## 4                               LocusTag     VARCHAR</span></span>
+<span><span class="co">## 5                               Synonyms     VARCHAR</span></span>
+<span><span class="co">## 6                                dbXrefs     VARCHAR</span></span>
+<span><span class="co">## 7                             chromosome     VARCHAR</span></span>
+<span><span class="co">## 8                           map_location     VARCHAR</span></span>
+<span><span class="co">## 9                            description     VARCHAR</span></span>
+<span><span class="co">## 10                          type_of_gene     VARCHAR</span></span>
+<span><span class="co">## 11    Symbol_from_nomenclature_authority     VARCHAR</span></span>
+<span><span class="co">## 12 Full_name_from_nomenclature_authority     VARCHAR</span></span>
+<span><span class="co">## 13                   Nomenclature_status     VARCHAR</span></span>
+<span><span class="co">## 14                    Other_designations     VARCHAR</span></span>
+<span><span class="co">## 15                     Modification_date      BIGINT</span></span>
+<span><span class="co">## 16                          Feature_type     VARCHAR</span></span></code></pre>
+<p>The function accepts any name returned by <code><a href="../reference/available_ncbi_parquet.html">available_ncbi_parquet()</a></code>, with or without the <code>.parquet</code> suffix:</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields</a></span><span class="op">(</span><span class="st">"gene2go"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##   column_name column_type</span></span>
+<span><span class="co">## 1     #tax_id      BIGINT</span></span>
+<span><span class="co">## 2      GeneID      BIGINT</span></span>
+<span><span class="co">## 3       GO_ID     VARCHAR</span></span>
+<span><span class="co">## 4    Evidence     VARCHAR</span></span>
+<span><span class="co">## 5   Qualifier     VARCHAR</span></span>
+<span><span class="co">## 6     GO_term     VARCHAR</span></span>
+<span><span class="co">## 7      PubMed     VARCHAR</span></span>
+<span><span class="co">## 8    Category     VARCHAR</span></span></code></pre>
+<p>Column names can also be used to validate a <code><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select()</a></code> or <code>by</code> argument before running a potentially expensive query:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="st">"map_location"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields</a></span><span class="op">(</span><span class="st">"gene_info"</span><span class="op">)</span><span class="op">$</span><span class="va">column_name</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] TRUE</span></span></code></pre>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="st">"map_location"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields</a></span><span class="op">(</span><span class="st">"gene2go"</span><span class="op">)</span><span class="op">$</span><span class="va">column_name</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] FALSE</span></span></code></pre>
+</div>
+<div class="section level2">
+<h2 id="identifier-mapping-with-mapidsng">Identifier mapping with <code>mapIdsNG()</code><a class="anchor" aria-label="anchor" href="#identifier-mapping-with-mapidsng"></a>
+</h2>
+<p><code><a href="../reference/mapIdsNG.html">mapIdsNG()</a></code> is a <code>mapIds</code>-style function that pushes all filtering to duckdb. For Symbol or GeneID keytypes the filter is a SQL <code>IN (...)</code> predicate on <code>gene_info</code>; for the Ensembl keytype a JOIN between <code>gene2ensembl</code> and <code>gene_info</code> is performed entirely in duckdb. Exactly one <code><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect()</a></code> call retrieves only the matched rows and the requested columns.</p>
 <div class="section level3">
-<h3 id="tidyverse-oriented-annotation-mapping">Tidyverse-oriented annotation mapping<a class="anchor" aria-label="anchor" href="#tidyverse-oriented-annotation-mapping"></a>
+<h3 id="symbol-to-geneid">Symbol to GeneID<a class="anchor" aria-label="anchor" href="#symbol-to-geneid"></a>
 </h3>
-<p>Typically one would use org.Hs.eg.db to remap identifiers from a SummarizedExperiment. We want to be able to do this for any identifier used in NCBI annotation, and for any organism. Let’s start with a dataset for human airway transcriptomics. The features are annotated with Ensembl gene identifiers, and we will add map locations and MIM codes using <code>mapIdsNG</code>, a variant of AnnotationDbi’s mapIds functionality for NCBI Gene.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">airway</span>, package<span class="op">=</span><span class="st">"airway"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"tidySummarizedExperiment"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Loading required namespace: tidySummarizedExperiment</span></span></code></pre>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tse</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">airway</span>, <span class="st">"tidySummarizedExperiment"</span><span class="op">)</span></span>
-<span><span class="va">tse</span> <span class="op">=</span> <span class="va">tse</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>map_location<span class="op">=</span><span class="fu"><a href="../reference/mapIdsNG.html">mapIdsNG</a></span><span class="op">(</span>keys<span class="op">=</span><span class="va">.feature</span>, keytype<span class="op">=</span><span class="st">"Ensembl"</span>, column<span class="op">=</span><span class="st">"map_location"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">tse</span> <span class="op">=</span> <span class="va">tse</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>MIM<span class="op">=</span><span class="fu"><a href="../reference/mapIdsNG.html">mapIdsNG</a></span><span class="op">(</span>keys<span class="op">=</span><span class="va">.feature</span>, keytype<span class="op">=</span><span class="st">"Ensembl"</span>, column<span class="op">=</span><span class="st">"MIM"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">tse</span><span class="op">)</span><span class="op">$</span><span class="va">map_location</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## </span></span>
-<span><span class="co">##               -         10p11.1        10p11.21  10p11.21-p11.1        10p11.22 </span></span>
-<span><span class="co">##              12               8              29               1              24 </span></span>
-<span><span class="co">## 10p11.22-p11.21 </span></span>
-<span><span class="co">##               1</span></span></code></pre>
-<p>Note that the identifiers that are conveniently available for <code>mapIdsNG</code> are currently limited to those in <code>gene_info</code>:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">litpop</span><span class="op">[[</span><span class="st">"lit.gene_info.parquet"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##  [1] "#tax_id"                              </span></span>
-<span><span class="co">##  [2] "GeneID"                               </span></span>
-<span><span class="co">##  [3] "Symbol"                               </span></span>
-<span><span class="co">##  [4] "LocusTag"                             </span></span>
-<span><span class="co">##  [5] "Synonyms"                             </span></span>
-<span><span class="co">##  [6] "dbXrefs"                              </span></span>
-<span><span class="co">##  [7] "chromosome"                           </span></span>
-<span><span class="co">##  [8] "map_location"                         </span></span>
-<span><span class="co">##  [9] "description"                          </span></span>
-<span><span class="co">## [10] "type_of_gene"                         </span></span>
-<span><span class="co">## [11] "Symbol_from_nomenclature_authority"   </span></span>
-<span><span class="co">## [12] "Full_name_from_nomenclature_authority"</span></span>
-<span><span class="co">## [13] "Nomenclature_status"                  </span></span>
-<span><span class="co">## [14] "Other_designations"                   </span></span>
-<span><span class="co">## [15] "Modification_date"                    </span></span>
-<span><span class="co">## [16] "Feature_type"</span></span></code></pre>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/mapIdsNG.html">mapIdsNG</a></span><span class="op">(</span></span>
+<span>  keys    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ORMDL3"</span>, <span class="st">"TP53"</span>, <span class="st">"GSDMB"</span>, <span class="st">"XyZZY"</span><span class="op">)</span>,</span>
+<span>  keytype <span class="op">=</span> <span class="st">"Symbol"</span>,</span>
+<span>  column  <span class="op">=</span> <span class="st">"GeneID"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## ORMDL3   TP53  GSDMB  XyZZY </span></span>
+<span><span class="co">##  94103   7157  55876     NA</span></span></code></pre>
+<p>The result is a named vector conformant to the input <code>keys</code>, with <code>NA</code> for unrecognised identifiers.</p>
+</div>
+<div class="section level3">
+<h3 id="symbol-to-chromosomal-map-location">Symbol to chromosomal map location<a class="anchor" aria-label="anchor" href="#symbol-to-chromosomal-map-location"></a>
+</h3>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/mapIdsNG.html">mapIdsNG</a></span><span class="op">(</span></span>
+<span>  keys    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ORMDL3"</span>, <span class="st">"TP53"</span>, <span class="st">"GSDMB"</span>, <span class="st">"BRCA1"</span><span class="op">)</span>,</span>
+<span>  keytype <span class="op">=</span> <span class="st">"Symbol"</span>,</span>
+<span>  column  <span class="op">=</span> <span class="st">"map_location"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##     ORMDL3       TP53      GSDMB      BRCA1 </span></span>
+<span><span class="co">##  "17q21.1"  "17p13.1"  "17q21.1" "17q21.31"</span></span></code></pre>
+</div>
+<div class="section level3">
+<h3 id="ensembl-to-symbol">Ensembl to Symbol<a class="anchor" aria-label="anchor" href="#ensembl-to-symbol"></a>
+</h3>
+<p>Ensembl lookups join <code>gene2ensembl.parquet</code> with <code>gene_info.parquet</code> on <code>GeneID</code>; the join runs entirely in duckdb before a single <code><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect()</a></code>.</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/mapIdsNG.html">mapIdsNG</a></span><span class="op">(</span></span>
+<span>  keys    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ENSG00000073605"</span>, <span class="st">"ENSG00000141510"</span>, <span class="st">"ENSG00000012048"</span><span class="op">)</span>,</span>
+<span>  keytype <span class="op">=</span> <span class="st">"Ensembl"</span>,</span>
+<span>  column  <span class="op">=</span> <span class="st">"Symbol"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## ENSG00000073605 ENSG00000141510 ENSG00000012048 </span></span>
+<span><span class="co">##         "GSDMB"          "TP53"         "BRCA1"</span></span></code></pre>
+</div>
+</div>
+<div class="section level2">
+<h2 id="querying-non-human-organisms">Querying non-human organisms<a class="anchor" aria-label="anchor" href="#querying-non-human-organisms"></a>
+</h2>
+<p>Because all NCBI Gene annotation for all organisms lives in the same parquet files, switching species is simply a matter of changing <code>taxid</code>. Here we look up Ensembl gene and transcript identifiers for the mouse (<em>Mus musculus</em>, taxid 10090) gene <em>Lilrb4a</em>.</p>
+<p>A quick symbol-to-Ensembl-gene lookup:</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/mapIdsNG.html">mapIdsNG</a></span><span class="op">(</span>keys <span class="op">=</span> <span class="st">"Lilrb4a"</span>, keytype <span class="op">=</span> <span class="st">"Symbol"</span>, column <span class="op">=</span> <span class="st">"Ensembl"</span>,</span>
+<span>         taxid <span class="op">=</span> <span class="fl">10090L</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##              Lilrb4a </span></span>
+<span><span class="co">## "ENSMUSG00000112148"</span></span></code></pre>
+<p>For the full transcript-level picture we join <code>gene_info</code> (filtered to the symbol) against <code>gene2ensembl</code> entirely within duckdb — both lazy tbls share the same connection, so the join is pushed down before any data is collected:</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gene_info_mouse</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_info"</span>, taxid <span class="op">=</span> <span class="fl">10090L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.data</span><span class="op">[[</span><span class="st">"Symbol"</span><span class="op">]</span><span class="op">]</span> <span class="op">==</span> <span class="st">"Lilrb4a"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">GeneID</span>, <span class="va">Symbol</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene2ensembl"</span>, taxid <span class="op">=</span> <span class="fl">10090L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">inner_join</a></span><span class="op">(</span><span class="va">gene_info_mouse</span>, by <span class="op">=</span> <span class="st">"GeneID"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Symbol</span>, <span class="va">Ensembl_gene_identifier</span>,</span>
+<span>                <span class="va">Ensembl_rna_identifier</span>, <span class="va">Ensembl_protein_identifier</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 4</span></span></span>
+<span><span class="co">##   Symbol  Ensembl_gene_identifier Ensembl_rna_identifier Ensembl_protein_ident…¹</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                  </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Lilrb4a ENSMUSG00000112148      ENSMUST00000218617.2   -                      </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Lilrb4a ENSMUSG00000112148      ENSMUST00000078778.5   ENSMUSP00000077833.4   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> Lilrb4a ENSMUSG00000062593      ENSMUST00000218123.2   ENSMUSP00000151827.2   </span></span>
+<span><span class="co">## <span style="color: #949494;"># ℹ abbreviated name: ¹​Ensembl_protein_identifier</span></span></span></code></pre>
+<p>The result reveals two distinct Ensembl gene models for <em>Lilrb4a</em> — something that a two-step approach (Symbol → one gene ID → transcripts) would have missed. Joining directly on <code>GeneID</code> returns all Ensembl records for the gene in a single query.</p>
+</div>
+<div class="section level2">
+<h2 id="joining-local-data-to-remote-annotation-with-join_ncbi_gene">Joining local data to remote annotation with <code>join_ncbi_gene()</code><a class="anchor" aria-label="anchor" href="#joining-local-data-to-remote-annotation-with-join_ncbi_gene"></a>
+</h2>
+<p><code><a href="../reference/join_ncbi_gene.html">join_ncbi_gene()</a></code> uploads a local data frame to the duckdb session as a temporary table and returns a lazy join against any remote NCBI Gene resource. Both sides of the join run in duckdb; the caller decides what to <code><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select()</a></code> and when to <code><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect()</a></code>.</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">local_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Symbol <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ORMDL3"</span>, <span class="st">"TP53"</span>, <span class="st">"BRCA1"</span>, <span class="st">"GSDMB"</span>, <span class="st">"XyZZY"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/join_ncbi_gene.html">join_ncbi_gene</a></span><span class="op">(</span><span class="va">local_df</span>, by <span class="op">=</span> <span class="st">"Symbol"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Symbol</span>, <span class="va">GeneID</span>, <span class="va">map_location</span>, <span class="va">type_of_gene</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 5 × 4</span></span></span>
+<span><span class="co">##   Symbol GeneID map_location type_of_gene  </span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> TP53     <span style="text-decoration: underline;">7</span>157 17p13.1      protein-coding</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> GSDMB   <span style="text-decoration: underline;">55</span>876 17q21.1      protein-coding</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> ORMDL3  <span style="text-decoration: underline;">94</span>103 17q21.1      protein-coding</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> BRCA1     672 17q21.31     protein-coding</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span> XyZZY      <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>           <span style="color: #BB0000;">NA</span></span></span></code></pre>
+<p>Unmatched keys (here <code>XyZZY</code>) appear with <code>NA</code> in the annotation columns because the default join type is <code>"left"</code>. Switch to <code>type = "inner"</code> to drop them.</p>
+<div class="section level3">
+<h3 id="enriching-a-geneid-table-with-go-terms-and-refseq-identifiers">Enriching a GeneID table with GO terms and RefSeq identifiers<a class="anchor" aria-label="anchor" href="#enriching-a-geneid-table-with-go-terms-and-refseq-identifiers"></a>
+</h3>
+<p>When multiple annotation resources are needed, each requires a <strong>separate</strong> join back to the original data frame. GO terms and RefSeq identifiers are both one-to-many relationships with GeneID: three genes yield hundreds of GO annotations and hundreds of transcript/protein pairs. Joining both resources in a single query would produce a Cartesian product; the correct pattern is two independent joins.</p>
+<p>Start with a local data frame of Entrez IDs:</p>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">local_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>GeneID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">94103L</span>, <span class="fl">7157L</span>, <span class="fl">672L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><strong>GO terms</strong> — one row per gene-GO pair:</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">go_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/join_ncbi_gene.html">join_ncbi_gene</a></span><span class="op">(</span><span class="va">local_ids</span>, by <span class="op">=</span> <span class="st">"GeneID"</span>,</span>
+<span>                          resource <span class="op">=</span> <span class="st">"gene2go"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">GeneID</span>, <span class="va">GO_ID</span>, <span class="va">GO_term</span>, <span class="va">Evidence</span>, <span class="va">Category</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">go_tbl</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 343</span></span></code></pre>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">go_tbl</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 5</span></span></span>
+<span><span class="co">##   GeneID GO_ID      GO_term                                    Evidence Category</span></span>
+<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>  <span style="text-decoration: underline;">94</span>103 GO:0002903 negative regulation of B cell apoptotic p… IMP      Process </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span>  <span style="text-decoration: underline;">94</span>103 GO:0005515 protein binding                            IPI      Function</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span>  <span style="text-decoration: underline;">94</span>103 GO:0005783 endoplasmic reticulum                      IDA      Compone…</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span>  <span style="text-decoration: underline;">94</span>103 GO:0005789 endoplasmic reticulum membrane             EXP      Compone…</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span>  <span style="text-decoration: underline;">94</span>103 GO:0005789 endoplasmic reticulum membrane             IEA      Compone…</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span>  <span style="text-decoration: underline;">94</span>103 GO:0005886 plasma membrane                            TAS      Compone…</span></span></code></pre>
+<p><strong>RefSeq identifiers</strong> — one row per gene-transcript pair (excluding entries with no RNA accession):</p>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">refseq_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/join_ncbi_gene.html">join_ncbi_gene</a></span><span class="op">(</span><span class="va">local_ids</span>, by <span class="op">=</span> <span class="st">"GeneID"</span>,</span>
+<span>                              resource <span class="op">=</span> <span class="st">"gene2refseq"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">GeneID</span>,</span>
+<span>         RNA   <span class="op">=</span> <span class="va">RNA_nucleotide_accession.version</span>,</span>
+<span>         protein <span class="op">=</span> <span class="va">protein_accession.version</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">RNA</span> <span class="op">!=</span> <span class="st">"-"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">refseq_tbl</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 810</span></span></code></pre>
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">refseq_tbl</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 3</span></span></span>
+<span><span class="co">##   GeneID RNA            protein       </span></span>
+<span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span>   <span style="text-decoration: underline;">7</span>157 NM_000546.6    NP_000537.3   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span>   <span style="text-decoration: underline;">7</span>157 NM_000546.6    NP_000537.3   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span>   <span style="text-decoration: underline;">7</span>157 NM_000546.6    NP_000537.3   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span>   <span style="text-decoration: underline;">7</span>157 NM_001126112.3 NP_001119584.1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span>   <span style="text-decoration: underline;">7</span>157 NM_001126112.3 NP_001119584.1</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span>   <span style="text-decoration: underline;">7</span>157 NM_001126112.3 NP_001119584.1</span></span></code></pre>
+<p>Each result shares the <code>GeneID</code> key with the original <code>local_ids</code> data frame and can be used independently or merged with <code><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">dplyr::left_join()</a></code> after collecting, depending on the downstream analysis.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## R version 4.5.0 (2025-04-11)</span></span>
-<span><span class="co">## Platform: aarch64-apple-darwin20</span></span>
-<span><span class="co">## Running under: macOS Sequoia 15.4.1</span></span>
+<pre><code><span><span class="co">## R version 4.6.1 (2026-06-24)</span></span>
+<span><span class="co">## Platform: aarch64-apple-darwin23</span></span>
+<span><span class="co">## Running under: macOS Sequoia 15.7.7</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Matrix products: default</span></span>
-<span><span class="co">## BLAS:   /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRblas.0.dylib </span></span>
-<span><span class="co">## LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1</span></span>
+<span><span class="co">## BLAS:   /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRblas.0.dylib </span></span>
+<span><span class="co">## LAPACK: /Library/Frameworks/R.framework/Versions/4.6/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## locale:</span></span>
 <span><span class="co">## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
@@ -223,58 +412,33 @@
 <span><span class="co">## [8] base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">##  [1] dplyr_1.1.4          RNCBIGene_0.0.4      org.Hs.eg.db_3.21.0 </span></span>
-<span><span class="co">##  [4] AnnotationDbi_1.71.0 IRanges_2.43.0       S4Vectors_0.47.0    </span></span>
-<span><span class="co">##  [7] Biobase_2.69.0       BiocGenerics_0.55.0  generics_0.1.4      </span></span>
-<span><span class="co">## [10] BiocStyle_2.37.0    </span></span>
+<span><span class="co">##  [1] dplyr_1.2.1          RNCBIGene_0.1.0      org.Hs.eg.db_3.23.1 </span></span>
+<span><span class="co">##  [4] AnnotationDbi_1.75.0 IRanges_2.47.2       S4Vectors_0.51.5    </span></span>
+<span><span class="co">##  [7] Biobase_2.73.1       BiocGenerics_0.59.10 generics_0.1.4      </span></span>
+<span><span class="co">## [10] BiocStyle_2.41.0    </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
-<span><span class="co">##  [1] tidyselect_1.2.1                viridisLite_0.4.2              </span></span>
-<span><span class="co">##  [3] farver_2.1.2                    blob_1.2.4                     </span></span>
-<span><span class="co">##  [5] filelock_1.0.3                  arrow_20.0.0                   </span></span>
-<span><span class="co">##  [7] Biostrings_2.77.1               lazyeval_0.2.2                 </span></span>
-<span><span class="co">##  [9] fastmap_1.2.0                   BiocFileCache_2.99.4           </span></span>
-<span><span class="co">## [11] duckdb_1.2.2                    digest_0.6.37                  </span></span>
-<span><span class="co">## [13] lifecycle_1.0.4                 ellipsis_0.3.2                 </span></span>
-<span><span class="co">## [15] tidySummarizedExperiment_1.19.0 KEGGREST_1.49.0                </span></span>
-<span><span class="co">## [17] RSQLite_2.3.11                  magrittr_2.0.3                 </span></span>
-<span><span class="co">## [19] compiler_4.5.0                  rlang_1.1.6                    </span></span>
-<span><span class="co">## [21] sass_0.4.10                     tools_4.5.0                    </span></span>
-<span><span class="co">## [23] utf8_1.2.5                      yaml_2.3.10                    </span></span>
-<span><span class="co">## [25] data.table_1.17.2               knitr_1.50                     </span></span>
-<span><span class="co">## [27] S4Arrays_1.9.0                  htmlwidgets_1.6.4              </span></span>
-<span><span class="co">## [29] bit_4.6.0                       curl_6.2.2                     </span></span>
-<span><span class="co">## [31] DelayedArray_0.35.1             RColorBrewer_1.1-3             </span></span>
-<span><span class="co">## [33] abind_1.4-8                     withr_3.0.2                    </span></span>
-<span><span class="co">## [35] purrr_1.0.4                     desc_1.4.3                     </span></span>
-<span><span class="co">## [37] grid_4.5.0                      fansi_1.0.6                    </span></span>
-<span><span class="co">## [39] ggplot2_3.5.2                   scales_1.4.0                   </span></span>
-<span><span class="co">## [41] dichromat_2.0-0.1               SummarizedExperiment_1.39.0    </span></span>
-<span><span class="co">## [43] cli_3.6.5                       rmarkdown_2.29                 </span></span>
-<span><span class="co">## [45] crayon_1.5.3                    ragg_1.4.0                     </span></span>
-<span><span class="co">## [47] httr_1.4.7                      DBI_1.2.3                      </span></span>
-<span><span class="co">## [49] cachem_1.1.0                    stringr_1.5.1                  </span></span>
-<span><span class="co">## [51] assertthat_0.2.1                BiocManager_1.30.25            </span></span>
-<span><span class="co">## [53] XVector_0.49.0                  matrixStats_1.5.0              </span></span>
-<span><span class="co">## [55] vctrs_0.6.5                     Matrix_1.7-3                   </span></span>
-<span><span class="co">## [57] ttservice_0.4.1                 jsonlite_2.0.0                 </span></span>
-<span><span class="co">## [59] bookdown_0.43                   bit64_4.6.0-1                  </span></span>
-<span><span class="co">## [61] systemfonts_1.2.3               crosstalk_1.2.1                </span></span>
-<span><span class="co">## [63] plotly_4.10.4                   tidyr_1.3.1                    </span></span>
-<span><span class="co">## [65] jquerylib_0.1.4                 glue_1.8.0                     </span></span>
-<span><span class="co">## [67] pkgdown_2.1.2                   DT_0.33                        </span></span>
-<span><span class="co">## [69] stringi_1.8.7                   gtable_0.3.6                   </span></span>
-<span><span class="co">## [71] GenomeInfoDb_1.45.3             GenomicRanges_1.61.0           </span></span>
-<span><span class="co">## [73] UCSC.utils_1.5.0                tibble_3.2.1                   </span></span>
-<span><span class="co">## [75] pillar_1.10.2                   rappdirs_0.3.3                 </span></span>
-<span><span class="co">## [77] htmltools_0.5.8.1               R6_2.6.1                       </span></span>
-<span><span class="co">## [79] dbplyr_2.5.0                    httr2_1.1.2                    </span></span>
-<span><span class="co">## [81] textshaping_1.0.1               evaluate_1.0.3                 </span></span>
-<span><span class="co">## [83] lattice_0.22-7                  png_0.1-8                      </span></span>
-<span><span class="co">## [85] memoise_2.0.1                   bslib_0.9.0                    </span></span>
-<span><span class="co">## [87] SparseArray_1.9.0               xfun_0.52                      </span></span>
-<span><span class="co">## [89] fs_1.6.6                        MatrixGenerics_1.21.0          </span></span>
-<span><span class="co">## [91] pkgconfig_2.0.3</span></span></code></pre>
+<span><span class="co">##  [1] KEGGREST_1.53.5     xfun_0.60           bslib_0.11.0       </span></span>
+<span><span class="co">##  [4] httr2_1.3.0         htmlwidgets_1.6.4   crosstalk_1.2.2    </span></span>
+<span><span class="co">##  [7] vctrs_0.7.3         tools_4.6.1         curl_7.1.0         </span></span>
+<span><span class="co">## [10] tibble_3.3.1        RSQLite_3.53.3      blob_1.3.0         </span></span>
+<span><span class="co">## [13] pkgconfig_2.0.3     dbplyr_2.6.0        desc_1.4.3         </span></span>
+<span><span class="co">## [16] assertthat_0.2.1    lifecycle_1.0.5     compiler_4.6.1     </span></span>
+<span><span class="co">## [19] textshaping_1.0.5   Biostrings_2.81.5   Seqinfo_1.3.0      </span></span>
+<span><span class="co">## [22] htmltools_0.5.9     sass_0.4.10         yaml_2.3.12        </span></span>
+<span><span class="co">## [25] pkgdown_2.2.1       pillar_1.11.1       crayon_1.5.3       </span></span>
+<span><span class="co">## [28] jquerylib_0.1.4     DT_0.34.0           cachem_1.1.0       </span></span>
+<span><span class="co">## [31] tidyselect_1.2.1    digest_0.6.39       duckdb_1.5.4.3     </span></span>
+<span><span class="co">## [34] purrr_1.2.2         bookdown_0.47       arrow_25.0.0       </span></span>
+<span><span class="co">## [37] fastmap_1.2.0       cli_3.6.6           magrittr_2.0.5     </span></span>
+<span><span class="co">## [40] utf8_1.2.6          withr_3.0.3         filelock_1.0.3     </span></span>
+<span><span class="co">## [43] bit64_4.8.2         rmarkdown_2.31      XVector_0.53.0     </span></span>
+<span><span class="co">## [46] httr_1.4.8          bit_4.6.0           otel_0.2.0         </span></span>
+<span><span class="co">## [49] ragg_1.5.2          png_0.1-9           memoise_2.0.1      </span></span>
+<span><span class="co">## [52] evaluate_1.0.5      knitr_1.51          BiocFileCache_3.3.0</span></span>
+<span><span class="co">## [55] rlang_1.3.0         glue_1.8.1          DBI_1.3.0          </span></span>
+<span><span class="co">## [58] BiocManager_1.30.27 jsonlite_2.0.0      R6_2.6.1           </span></span>
+<span><span class="co">## [61] systemfonts_1.3.2   fs_2.1.0</span></span></code></pre>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -287,7 +451,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
