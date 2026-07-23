@@ -41,7 +41,7 @@ SCRIPT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 PARQUET_DIR_GUARD = $(if $(PARQUET_DIR),,$(error PARQUET_DIR is not set -- export it before running this target))
 
-.PHONY: all download parquet provenance upload clean pull
+.PHONY: all download parquet provenance upload dispatch clean pull
 
 all: pull download parquet provenance
 
@@ -82,6 +82,24 @@ upload: $(PARQUET_FILES) $(PROVENANCE)
 	$(PARQUET_DIR_GUARD)
 	$(if $(RCLONE_CONFIG_DIR),,$(error RCLONE_CONFIG_DIR is not set -- export it before running make upload))
 	sh $(SCRIPT_DIR)doall.sh
+
+# ── Repository dispatch ───────────────────────────────────────────────────────
+# Notify RNCBIGene and pyNCBIGene CI that the bucket has been updated.
+# Requires GITHUB_TOKEN to be set (a personal access token with repo scope).
+
+dispatch:
+	$(if $(GITHUB_TOKEN),,$(error GITHUB_TOKEN is not set -- export it before running make dispatch))
+	curl -s -X POST \
+	  -H "Authorization: token $(GITHUB_TOKEN)" \
+	  -H "Accept: application/vnd.github.v3+json" \
+	  https://api.github.com/repos/vjcitn/RNCBIGene/dispatches \
+	  -d '{"event_type":"bucket-updated"}'
+	curl -s -X POST \
+	  -H "Authorization: token $(GITHUB_TOKEN)" \
+	  -H "Accept: application/vnd.github.v3+json" \
+	  https://api.github.com/repos/vjcitn/pyNCBIGene/dispatches \
+	  -d '{"event_type":"bucket-updated"}'
+	@echo "Repository dispatch sent to RNCBIGene and pyNCBIGene."
 
 # ── Housekeeping ──────────────────────────────────────────────────────────────
 

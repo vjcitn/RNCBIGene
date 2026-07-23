@@ -17,3 +17,9 @@ for f in "${PARQUET_DIR}"/*.parquet "${PARQUET_DIR}"/provenance.json; do
   echo "uploading $(basename "$f") ..."
   sh "${SCRIPT_DIR}/putNCBI.sh" "$(basename "$f")"
 done
+
+# Always upload the golden query file from the package source
+echo "uploading test_queries.json ..."
+cp "${SCRIPT_DIR}/test_queries.json" "${PARQUET_DIR}/test_queries.json"
+sh "${SCRIPT_DIR}/putNCBI.sh" "test_queries.json"
+rm -f "${PARQUET_DIR}/test_queries.json"

@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "description": "Golden queries for validating RNCBIGene and pyNCBIGene against the OSN bucket.",
+  "notes": "GeneIDs and map locations for well-established human genes are stable across NCBI updates. Ensembl gene identifiers may change across Ensembl releases.",
+  "queries": [
+    {
+      "id": "map_symbol_to_geneid_TP53",
+      "function": "map_ids_ng",
+      "args": { "keys": ["TP53"], "keytype": "Symbol", "column": "GeneID", "taxid": 9606 },
+      "expected": { "TP53": 7157 }
+    },
+    {
+      "id": "map_symbol_to_geneid_ORMDL3",
+      "function": "map_ids_ng",
+      "args": { "keys": ["ORMDL3"], "keytype": "Symbol", "column": "GeneID", "taxid": 9606 },
+      "expected": { "ORMDL3": 94103 }
+    },
+    {
+      "id": "map_symbol_to_geneid_unknown",
+      "function": "map_ids_ng",
+      "args": { "keys": ["XyZZY"], "keytype": "Symbol", "column": "GeneID", "taxid": 9606 },
+      "expected": { "XyZZY": null }
+    },
+    {
+      "id": "map_symbol_to_maploc_TP53",
+      "function": "map_ids_ng",
+      "args": { "keys": ["TP53"], "keytype": "Symbol", "column": "map_location", "taxid": 9606 },
+      "expected": { "TP53": "17p13.1" }
+    },
+    {
+      "id": "map_symbol_to_maploc_BRCA1",
+      "function": "map_ids_ng",
+      "args": { "keys": ["BRCA1"], "keytype": "Symbol", "column": "map_location", "taxid": 9606 },
+      "expected": { "BRCA1": "17q21.31" }
+    },
+    {
+      "id": "map_ensembl_to_symbol_GSDMB",
+      "function": "map_ids_ng",
+      "args": { "keys": ["ENSG00000073605"], "keytype": "Ensembl", "column": "Symbol", "taxid": 9606 },
+      "expected": { "ENSG00000073605": "GSDMB" }
+    },
+    {
+      "id": "available_resources_count",
+      "function": "available_ncbi_parquet",
+      "args": {},
+      "expected": { "min_count": 8 }
+    }
+  ]
+}
