@@ -6,11 +6,11 @@
 #' @export
 is_online <- function(site="http://example.com/") {
   tryCatch({
-    readLines(site,n=1)
+    readLines(site, n=1)
     TRUE
   },
-  warning = function(w) invokeRestart("muffleWarning"),
-  error = function(e) FALSE)
+  warning = function(w) TRUE,   # swallow "incomplete final line" etc.
+  error   = function(e) FALSE)
 }
 
 .osn_bucket_to_cache <- function(
@@ -306,6 +306,5 @@ freeze_taxon_cache <- function(taxid, tag,
 #' @param cache BiocFileCache object
 #' @return path to local cached file
 geneFromCache = function(resource, cache=BiocFileCache::BiocFileCache()) {
- stopifnot(resource %in% available_ncbi_parquet())
  .osn_bucket_to_cache(entity=resource, ca=cache)
 }

@@ -154,8 +154,10 @@ remote_gene_query <- function(gres = "gene2pubmed", qual = "limit 5",
                                tname = basename(tempfile()), collect = FALSE) {
   pmd <- ngurl(gres)
   con <- ncbi_gene_con()
+  # CREATE OR REPLACE VIEW is idempotent and stores no data, avoiding
+  # table accumulation across repeated calls in a long session.
   DBI::dbExecute(con, sprintf(
-    'CREATE TABLE %s AS SELECT * FROM read_parquet(%s) %s;',
+    'CREATE OR REPLACE VIEW %s AS SELECT * FROM read_parquet(%s) %s',
     tname, dQuote(pmd, q = FALSE), qual))
   tbl <- dplyr::tbl(con, tname)
   if (collect) dplyr::collect(tbl) else tbl

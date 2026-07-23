@@ -26,14 +26,17 @@ must be one of \code{available_ncbi_parquet()}}
 \item{type}{character(1) "left" (default) or "inner"}
 }
 \value{
-lazy dplyr::tbl -- pipe select/filter/collect as needed
+lazy dplyr::tbl -- call collect() in the same expression; see Note
 }
 \description{
 join a local data frame to a remote NCBI Gene parquet resource
 }
 \note{
-local_df is written to the persistent duckdb session. The returned tbl is lazy;
-  call collect() to retrieve results. Both sides of the join run entirely in duckdb.
+\code{local_df} is registered in the duckdb session via
+  \code{duckdb::duckdb_register()} (zero-copy).  The registration is removed
+  when the returned tbl is collected or when \code{gc_ncbi_tables()} is called.
+  In practice, always use the returned tbl in a single pipeline ending with
+  \code{collect()}.  Both sides of the join run entirely in duckdb.
 }
 \examples{
 if (is_online()) {
