@@ -39,18 +39,28 @@
   open_ncbi_gene();
   mapIdsNG();
   join_ncbi_gene();
+  ncbi_gene_fields();
   ncbi_parquet_info();
-  available_ncbi_parquet()]
+  available_ncbi_parquet();
+  cache_by_taxon();
+  taxon_cache_info()]
+
+[<database> BiocFileCache|
+  taxon-filtered parquet;
+  gene_info_taxid9606.parquet;
+  gene2go_taxid9606.parquet ...]
 
 [<actor> Analyst]
 
-[<database> NCBI FTP]   -> [GNUmakefile]
-[GNUmakefile]           -> [YYYYMMDD/*.gz]
-[YYYYMMDD/*.gz]         -> [*.parquet]
-[YYYYMMDD/*.gz]         -> [provenance.json]
-[*.parquet]             -> [doall]
-[provenance.json]       -> [doall]
-[doall]                 -> [putNCBI.sh]
-[putNCBI.sh]            -> [<database> OSN bucket]
-[<database> OSN bucket] -> [RNCBIGene package]
-[RNCBIGene package]     -> [<actor> Analyst]
+[<database> NCBI FTP]        -> [GNUmakefile]
+[GNUmakefile]                -> [YYYYMMDD/*.gz]
+[YYYYMMDD/*.gz]              -> [*.parquet]
+[YYYYMMDD/*.gz]              -> [provenance.json]
+[*.parquet]                  -> [doall]
+[provenance.json]            -> [doall]
+[doall]                      -> [putNCBI.sh]
+[putNCBI.sh]                 -> [<database> OSN bucket]
+[<database> OSN bucket]      -> [RNCBIGene package]
+[RNCBIGene package]          -> [<database> BiocFileCache]
+[<database> BiocFileCache]   -> [RNCBIGene package]
+[RNCBIGene package]          -> [<actor> Analyst]
