@@ -5,6 +5,13 @@ ngurl <- function(gres = "gene2pubmed") {
   sprintf("https://mghp.osn.xsede.org/bir190004-bucket01/BiocParquetNCBI/%s.parquet", gres)
 }
 
+# Taxid column name differs across resources; all use "#tax_id" except these.
+.TAXID_COL <- c(gene_refseq_uniprotkb_collab = "NCBI_tax_id")
+
+.taxid_column <- function(gres) {
+  if (gres %in% names(.TAXID_COL)) .TAXID_COL[[gres]] else "#tax_id"
+}
+
 # Session-cached resource names (without .parquet suffix) to avoid a network
 # round-trip on every open_ncbi_gene() / join_ncbi_gene() call.
 .ncbi_resource_names <- function() {
@@ -94,21 +101,23 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL) {
   local <- .cached_parquet_path(gres, taxid)
 
   if (!is.null(local)) {
-    vname <- paste0("v_local_", gsub("[^A-Za-z0-9]", "_", gres), "_", taxid)
+    vname  <- paste0("v_local_", gsub("[^A-Za-z0-9]", "_", gres), "_", taxid)
+    taxcol <- .taxid_column(gres)
     DBI::dbExecute(con, sprintf(
       "CREATE OR REPLACE VIEW %s AS SELECT * FROM read_parquet('%s')", vname, local))
     tbl <- dplyr::tbl(con, vname)
-    return(dplyr::select(tbl, -dplyr::all_of("#tax_id")))
+    return(dplyr::select(tbl, -dplyr::all_of(taxcol)))
   }
 
   url   <- ngurl(gres)
   vname <- paste0("v_", gsub("[^A-Za-z0-9]", "_", gres))
   DBI::dbExecute(con, sprintf(
     "CREATE OR REPLACE VIEW %s AS SELECT * FROM read_parquet('%s')", vname, url))
+  taxcol <- .taxid_column(gres)
   tbl <- dplyr::tbl(con, vname)
   if (!is.null(taxid))
-    tbl <- dplyr::filter(tbl, .data[["#tax_id"]] == taxid) |>
-           dplyr::select(-dplyr::all_of("#tax_id"))
+    tbl <- dplyr::filter(tbl, .data[[taxcol]] == taxid) |>
+           dplyr::select(-dplyr::all_of(taxcol))
   tbl
 }
 

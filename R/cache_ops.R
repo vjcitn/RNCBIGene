@@ -159,13 +159,14 @@ cache_by_taxon <- function(
     if (verbose) message(sprintf("  %s: filtering from OSN ...", gres))
 
     open_ncbi_gene(gres)  # validates resource name and creates VIEW
-    vname <- paste0("v_", gsub("[^A-Za-z0-9]", "_", gres))
-    tmp   <- tempfile(fileext = ".parquet")
+    vname  <- paste0("v_", gsub("[^A-Za-z0-9]", "_", gres))
+    taxcol <- .taxid_column(gres)
+    tmp    <- tempfile(fileext = ".parquet")
 
     DBI::dbExecute(ncbi_gene_con(), sprintf(
-      "COPY (SELECT * FROM %s WHERE \"#tax_id\" = %s)
+      "COPY (SELECT * FROM %s WHERE \"%s\" = %s)
        TO '%s' (FORMAT parquet, COMPRESSION zstd, COMPRESSION_LEVEL 15)",
-      vname, taxid, tmp))
+      vname, taxcol, taxid, tmp))
 
     if (nrow(existing) == 1L && force)
       BiocFileCache::bfcremove(cache, existing$rid)
