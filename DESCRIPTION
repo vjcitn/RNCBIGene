@@ -12,7 +12,7 @@ Description: This package is based on transforming key textual resources from NC
 	bucket.  This package illustrates the use of standard and tidyverse-oriented approaches
 	to querying and using annotation on genes for all organisms covered by NCBI Gene.
 Depends: R (>= 4.1.0)
-Suggests: 
+Suggests:
     knitr,
     BiocStyle,
     testthat (>= 3.0.0),
@@ -22,7 +22,8 @@ Suggests:
     DT,
     SummarizedExperiment,
     airway,
-    tidySummarizedExperiment
+    tidySummarizedExperiment,
+    org.Hs.eg.db
 Imports: arrow, dplyr, DBI, BiocFileCache, duckdb, utils
 License: Artistic-2.0
 VignetteBuilder: knitr
