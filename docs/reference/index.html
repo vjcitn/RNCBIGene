@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RNCBIGene</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,6 +54,27 @@
 
         </dt>
         <dd>list parquet resources available in the OSN bucket</dd>
+
+        <dt>
+
+          <code><a href="cache_by_taxon.html">cache_by_taxon()</a></code>
+
+        </dt>
+        <dd>filter and cache parquet resources for a single taxon in BiocFileCache</dd>
+
+        <dt>
+
+          <code><a href="clear_taxon_cache.html">clear_taxon_cache()</a></code>
+
+        </dt>
+        <dd>remove taxon-specific parquets from BiocFileCache</dd>
+
+        <dt>
+
+          <code><a href="freeze_taxon_cache.html">freeze_taxon_cache()</a></code>
+
+        </dt>
+        <dd>freeze a snapshot of taxon-cached parquets for reproducibility</dd>
 
         <dt>
 
@@ -141,10 +162,10 @@
 
         <dt>
 
-          <code><a href="taxonomyMap.html">taxonomyMap()</a></code>
+          <code><a href="taxon_cache_info.html">taxon_cache_info()</a></code>
 
         </dt>
-        <dd>retrieve a vector of taxonomy names indexed by taxonomy codes</dd>
+        <dd>list taxon-specific parquets stored in BiocFileCache</dd>
       </dl></div>
   </main></div>
 

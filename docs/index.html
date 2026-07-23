@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">RNCBIGene</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,17 +70,17 @@
 # Database: DuckDB 1.5.4 [vincentcarey@Darwin 24.6.0:R 4.6.1/:memory:]
    `#tax_id` GeneID Symbol LocusTag Synonyms     dbXrefs chromosome map_location
        &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;      &lt;chr&gt;
- 1      9606   4038 LRP4   -        CLSS|CMS17|… MIM:60… 11         11p11.2
- 2      9606   4040 LRP6   -        ADCAD2|EVR8… MIM:60… 12         12p13.2
- 3      9606   4041 LRP5   -        BMND1|EVR1|… MIM:60… 11         11q13.2
- 4      9606   4043 LRPAP1 -        A2MRAP|A2RA… MIM:10… 4          4p16.3
- 5      9606   4045 LSAMP  -        IGLON3|LAMP  MIM:60… 3          3q13.31
- 6      9606   4046 LSP1   -        WP34|pp52    MIM:15… 11         11p15.5
- 7      9606   4047 LSS    -        APMR4|CTRCT… MIM:60… 21         21q22.3
- 8      9606   4048 LTA4H  -        -            MIM:15… 12         12q23.1
- 9      9606   4049 LTA    -        LT|TNFB|TNF… MIM:15… 6          6p21.33
-10      9606   4050 LTB    -        TNFC|TNFSF3… MIM:60… 6          6p21.33
-# ℹ 8 more variables: description &lt;chr&gt;, type_of_gene &lt;chr&gt;,
+ 1      9606   4038 LRP4   -        CLSS|CMS17|... MIM:60... 11         11p11.2
+ 2      9606   4040 LRP6   -        ADCAD2|EVR8... MIM:60... 12         12p13.2
+ 3      9606   4041 LRP5   -        BMND1|EVR1|... MIM:60... 11         11q13.2
+ 4      9606   4043 LRPAP1 -        A2MRAP|A2RA... MIM:10... 4          4p16.3
+ 5      9606   4045 LSAMP  -        IGLON3|LAMP  MIM:60... 3          3q13.31
+ 6      9606   4046 LSP1   -        WP34|pp52    MIM:15... 11         11p15.5
+ 7      9606   4047 LSS    -        APMR4|CTRCT... MIM:60... 21         21q22.3
+ 8      9606   4048 LTA4H  -        -            MIM:15... 12         12q23.1
+ 9      9606   4049 LTA    -        LT|TNFB|TNF... MIM:15... 6          6p21.33
+10      9606   4050 LTB    -        TNFC|TNFSF3... MIM:60... 6          6p21.33
+# # 8 more variables: description &lt;chr&gt;, type_of_gene &lt;chr&gt;,
 #   Symbol_from_nomenclature_authority &lt;chr&gt;,
 #   Full_name_from_nomenclature_authority &lt;chr&gt;, Nomenclature_status &lt;chr&gt;,
 #   Other_designations &lt;chr&gt;, Modification_date &lt;dbl&gt;, Feature_type &lt;chr&gt;</code></pre>
@@ -133,11 +133,40 @@
 8 Wed, 22 Jul 2026 06:10:14 GMT</code></pre>
 </div>
 <div class="section level1">
+<h1 id="local-caching-and-reproducibility">Local caching and reproducibility<a class="anchor" aria-label="anchor" href="#local-caching-and-reproducibility"></a>
+</h1>
+<div class="section level2">
+<h2 id="caching-for-offline-or-high-performance-use">Caching for offline or high-performance use<a class="anchor" aria-label="anchor" href="#caching-for-offline-or-high-performance-use"></a>
+</h2>
+<p><code><a href="reference/cache_by_taxon.html">cache_by_taxon()</a></code> performs a one-time filter of each remote parquet to a single taxon and stores the result locally in <code>BiocFileCache</code>. After that, <code><a href="reference/open_ncbi_gene.html">open_ncbi_gene()</a></code> – and every function that calls it – routes to the local file with no change to the API.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/cache_by_taxon.html">cache_by_taxon</a></span><span class="op">(</span><span class="fl">9606L</span><span class="op">)</span>              <span class="co"># human: all eight resources (one-time, slow)</span></span>
+<span><span class="fu"><a href="reference/cache_by_taxon.html">cache_by_taxon</a></span><span class="op">(</span><span class="fl">10090L</span><span class="op">)</span>             <span class="co"># mouse</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/taxon_cache_info.html">taxon_cache_info</a></span><span class="op">(</span><span class="fl">9606L</span><span class="op">)</span>            <span class="co"># list cached entries for human</span></span>
+<span><span class="fu"><a href="reference/clear_taxon_cache.html">clear_taxon_cache</a></span><span class="op">(</span><span class="fl">9606L</span><span class="op">)</span>           <span class="co"># remove live cache, route back to OSN</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="freezing-a-snapshot-for-reproducibility">Freezing a snapshot for reproducibility<a class="anchor" aria-label="anchor" href="#freezing-a-snapshot-for-reproducibility"></a>
+</h2>
+<p><code><a href="reference/freeze_taxon_cache.html">freeze_taxon_cache()</a></code> makes a physical copy of the current live cache under an identifying tag. Frozen entries survive <code><a href="reference/clear_taxon_cache.html">clear_taxon_cache()</a></code> and can only be removed explicitly. Duplicate tags are rejected unless <code>force=TRUE</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/freeze_taxon_cache.html">freeze_taxon_cache</a></span><span class="op">(</span><span class="fl">9606L</span>, tag <span class="op">=</span> <span class="st">"paper_2026_07"</span><span class="op">)</span>   <span class="co"># snapshot current human cache</span></span>
+<span></span>
+<span><span class="co"># query the frozen version via freeze_tag=</span></span>
+<span><span class="fu"><a href="reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_info"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span>, freeze_tag <span class="op">=</span> <span class="st">"paper_2026_07"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Symbol</span> <span class="op">==</span> <span class="st">"TP53"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Symbol</span>, <span class="va">GeneID</span>, <span class="va">map_location</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="reference/open_ncbi_gene.html">open_ncbi_gene()</a></code> stops with a clear message if the requested tag is not found, making broken reproducibility pipelines fail loudly rather than silently falling back to a different data version.</p>
+</div>
+</div>
+<div class="section level1">
 <h1 id="construction-of-the-package-and-web-resources">Construction of the package and web resources<a class="anchor" aria-label="anchor" href="#construction-of-the-package-and-web-resources"></a>
 </h1>
 <p>See <code>inst/preps</code>.</p>
 <div class="figure">
-<img src="reference/figures/annowk2.png" alt=""><p class="caption">schematic</p>
+<img src="reference/figures/wf.png" alt=""><p class="caption">schematic</p>
 </div>
 </div>
 
@@ -168,6 +197,7 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Vince Carey <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-4046-0063" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 

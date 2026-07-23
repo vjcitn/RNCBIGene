@@ -15,7 +15,7 @@ open a lazy dplyr tbl over a remote NCBI Gene parquet resource
 <div class="sourceCode">
 
 ``` r
-open_ncbi_gene(resource = "gene_info", taxid = NULL)
+open_ncbi_gene(resource = "gene_info", taxid = NULL, freeze_tag = NULL)
 ```
 
 </div>
@@ -34,6 +34,12 @@ open_ncbi_gene(resource = "gene_info", taxid = NULL)
 
     integer(1) or NULL; when non-NULL, pre-filters to this taxonomy ID
     in SQL
+
+-   freeze\_tag:
+
+    character(1) or NULL; when set, opens a frozen snapshot created by
+    `freeze_taxon_cache(taxid, tag=freeze_tag)` and fails if the tag is
+    not found
 
 </div>
 

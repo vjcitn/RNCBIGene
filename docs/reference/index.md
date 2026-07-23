@@ -14,6 +14,12 @@
     of NCBI Gene annotation
 -   `available_ncbi_parquet()` : list parquet resources available in the
     OSN bucket
+-   `cache_by_taxon()` : filter and cache parquet resources for a single
+    taxon in BiocFileCache
+-   `clear_taxon_cache()` : remove taxon-specific parquets from
+    BiocFileCache
+-   `freeze_taxon_cache()` : freeze a snapshot of taxon-cached parquets
+    for reproducibility
 -   `geneFromCache()` : download a parquet file from the OSN bucket to
     local BiocFileCache
 -   `is_online()` : utility to check for internet access for testing
@@ -37,8 +43,8 @@
     with a given tag
 -   `remote_gene_query()` : use duckdb to query NCBI Gene data in OSN
     bucket
--   `taxonomyMap()` : retrieve a vector of taxonomy names indexed by
-    taxonomy codes
+-   `taxon_cache_info()` : list taxon-specific parquets stored in
+    BiocFileCache
 
 </div>
 

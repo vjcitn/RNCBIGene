@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RNCBIGene</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,7 +57,7 @@
       <h1>RNCBIGene: NCBI Gene annotation in parquet</h1>
                         <h4 data-toc-skip class="author">Vincent J. Carey, stvjc at channing.harvard.edu</h4>
             
-            <h4 data-toc-skip class="date">July 22, 2026</h4>
+            <h4 data-toc-skip class="date">July 23, 2026</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/vjcitn/RNCBIGene/blob/HEAD/vignettes/RNCBIGene.Rmd"><code>vignettes/RNCBIGene.Rmd</code></a></small>
       <div class="d-none name"><code>RNCBIGene.Rmd</code></div>
@@ -182,7 +182,7 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "tbl_duckdb_connection" "tbl_dbi"               "tbl_sql"              </span></span>
 <span><span class="co">## [4] "tbl_lazy"              "tbl"</span></span></code></pre>
-<p>The object is a lazy SQL-backed tbl — inspecting it triggers a small preview fetch but does not load the full dataset.</p>
+<p>The object is a lazy SQL-backed tbl – inspecting it triggers a small preview fetch but does not load the full dataset.</p>
 <p>Compose a multi-step query before collecting:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_info"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -205,7 +205,7 @@
 <div class="section level2">
 <h2 id="discovering-available-fields-with-ncbi_gene_fields">Discovering available fields with <code>ncbi_gene_fields()</code><a class="anchor" aria-label="anchor" href="#discovering-available-fields-with-ncbi_gene_fields"></a>
 </h2>
-<p>Before composing a query it is useful to know what columns a resource provides. <code><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields()</a></code> queries the duckdb schema for any resource and returns a data frame of column names and their duckdb types — no data rows are fetched.</p>
+<p>Before composing a query it is useful to know what columns a resource provides. <code><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields()</a></code> queries the duckdb schema for any resource and returns a data frame of column names and their duckdb types – no data rows are fetched.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields</a></span><span class="op">(</span><span class="st">"gene_info"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                              column_name column_type</span></span>
@@ -298,7 +298,7 @@
 <span>         taxid <span class="op">=</span> <span class="fl">10090L</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              Lilrb4a </span></span>
 <span><span class="co">## "ENSMUSG00000112148"</span></span></code></pre>
-<p>For the full transcript-level picture we join <code>gene_info</code> (filtered to the symbol) against <code>gene2ensembl</code> entirely within duckdb — both lazy tbls share the same connection, so the join is pushed down before any data is collected:</p>
+<p>For the full transcript-level picture we join <code>gene_info</code> (filtered to the symbol) against <code>gene2ensembl</code> entirely within duckdb – both lazy tbls share the same connection, so the join is pushed down before any data is collected:</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gene_info_mouse</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_info"</span>, taxid <span class="op">=</span> <span class="fl">10090L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.data</span><span class="op">[[</span><span class="st">"Symbol"</span><span class="op">]</span><span class="op">]</span> <span class="op">==</span> <span class="st">"Lilrb4a"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -316,7 +316,7 @@
 <span><span class="co">## <span style="color: #BCBCBC;">2</span> Lilrb4a ENSMUSG00000112148      ENSMUST00000078778.5   ENSMUSP00000077833.4   </span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">3</span> Lilrb4a ENSMUSG00000062593      ENSMUST00000218123.2   ENSMUSP00000151827.2   </span></span>
 <span><span class="co">## <span style="color: #949494;"># ℹ abbreviated name: ¹​Ensembl_protein_identifier</span></span></span></code></pre>
-<p>The result reveals two distinct Ensembl gene models for <em>Lilrb4a</em> — something that a two-step approach (Symbol → one gene ID → transcripts) would have missed. Joining directly on <code>GeneID</code> returns all Ensembl records for the gene in a single query.</p>
+<p>The result reveals two distinct Ensembl gene models for <em>Lilrb4a</em> – something that a two-step approach (Symbol -&gt; one gene ID -&gt; transcripts) would have missed. Joining directly on <code>GeneID</code> returns all Ensembl records for the gene in a single query.</p>
 </div>
 <div class="section level2">
 <h2 id="joining-local-data-to-remote-annotation-with-join_ncbi_gene">Joining local data to remote annotation with <code>join_ncbi_gene()</code><a class="anchor" aria-label="anchor" href="#joining-local-data-to-remote-annotation-with-join_ncbi_gene"></a>
@@ -344,7 +344,7 @@
 <p>Start with a local data frame of Entrez IDs:</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">local_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>GeneID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">94103L</span>, <span class="fl">7157L</span>, <span class="fl">672L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><strong>GO terms</strong> — one row per gene-GO pair:</p>
+<p><strong>GO terms</strong> – one row per gene-GO pair:</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">go_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/join_ncbi_gene.html">join_ncbi_gene</a></span><span class="op">(</span><span class="va">local_ids</span>, by <span class="op">=</span> <span class="st">"GeneID"</span>,</span>
 <span>                          resource <span class="op">=</span> <span class="st">"gene2go"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -363,7 +363,7 @@
 <span><span class="co">## <span style="color: #BCBCBC;">4</span>  <span style="text-decoration: underline;">94</span>103 GO:0005789 endoplasmic reticulum membrane             EXP      Compone…</span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">5</span>  <span style="text-decoration: underline;">94</span>103 GO:0005789 endoplasmic reticulum membrane             IEA      Compone…</span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">6</span>  <span style="text-decoration: underline;">94</span>103 GO:0005886 plasma membrane                            TAS      Compone…</span></span></code></pre>
-<p><strong>RefSeq identifiers</strong> — one row per gene-transcript pair (excluding entries with no RNA accession):</p>
+<p><strong>RefSeq identifiers</strong> – one row per gene-transcript pair (excluding entries with no RNA accession):</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">refseq_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/join_ncbi_gene.html">join_ncbi_gene</a></span><span class="op">(</span><span class="va">local_ids</span>, by <span class="op">=</span> <span class="st">"GeneID"</span>,</span>
 <span>                              resource <span class="op">=</span> <span class="st">"gene2refseq"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -389,9 +389,122 @@
 </div>
 </div>
 <div class="section level2">
+<h2 id="caching-for-offline-or-high-performance-use">Caching for offline or high-performance use<a class="anchor" aria-label="anchor" href="#caching-for-offline-or-high-performance-use"></a>
+</h2>
+<p>All queries above route to the OSN bucket on every call. For a species you work with repeatedly, <code><a href="../reference/cache_by_taxon.html">cache_by_taxon()</a></code> performs a one-time filter of each remote parquet down to that taxon and stores the result in <code>BiocFileCache</code>. After that, <code><a href="../reference/open_ncbi_gene.html">open_ncbi_gene()</a></code> – and every function that calls it (<code><a href="../reference/join_ncbi_gene.html">join_ncbi_gene()</a></code>, <code><a href="../reference/mapIdsNG.html">mapIdsNG()</a></code>, <code><a href="../reference/ncbi_gene_fields.html">ncbi_gene_fields()</a></code>) – silently routes to the local file instead of the bucket, with no change to the API.</p>
+<p>The filtering uses duckdb’s <code>COPY ... TO</code> statement, so data streams directly to disk without passing through R memory.</p>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># one-time setup -- slow for large resources, fast thereafter</span></span>
+<span><span class="fu"><a href="../reference/cache_by_taxon.html">cache_by_taxon</a></span><span class="op">(</span><span class="fl">9606L</span><span class="op">)</span>   <span class="co"># human: all eight resources</span></span></code></pre></div>
+<p>Check what is cached:</p>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/taxon_cache_info.html">taxon_cache_info</a></span><span class="op">(</span><span class="op">)</span>   <span class="co"># all cached taxons; taxon_cache_info(9606L) for one taxon</span></span></code></pre></div>
+<pre><code><span><span class="co">##                                                             rname</span></span>
+<span><span class="co">## 1                     gene_info_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 2                gene_orthologs_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 3  gene_refseq_uniprotkb_collab_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 4                gene2accession_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 5                  gene2ensembl_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 6                       gene2go_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 7                   gene2pubmed_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 8                   gene2refseq_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 9                               gene_orthologs_taxid10090.parquet</span></span>
+<span><span class="co">## 10                    gene_orthologs_taxid10090_frozen_v1.parquet</span></span>
+<span><span class="co">##                                                                                                         rpath</span></span>
+<span><span class="co">## 1  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff4c8c6bd9_file16cff6d816eb9.parquet</span></span>
+<span><span class="co">## 2  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff6d735ff4_file16cff22185cc8.parquet</span></span>
+<span><span class="co">## 3  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff3563dc8b_file16cff31b837fd.parquet</span></span>
+<span><span class="co">## 4  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff4987d819_file16cff7631f3f6.parquet</span></span>
+<span><span class="co">## 5  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff2ac55ec6_file16cff3e6a2585.parquet</span></span>
+<span><span class="co">## 6  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff7cd5c4d9_file16cff1a6b55eb.parquet</span></span>
+<span><span class="co">## 7  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff66e81dc6_file16cff21a921c5.parquet</span></span>
+<span><span class="co">## 8   /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff50e05fc_file16cff48502293.parquet</span></span>
+<span><span class="co">## 9    /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/54287e0666d7_file54281f35b13a.parquet</span></span>
+<span><span class="co">## 10    /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/5428237044b6_file5428fa13ffe.parquet</span></span>
+<span><span class="co">##            create_time</span></span>
+<span><span class="co">## 1  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 2  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 3  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 4  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 5  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 6  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 7  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 8  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 9  2026-07-23 13:27:39</span></span>
+<span><span class="co">## 10 2026-07-23 13:27:39</span></span></code></pre>
+<p>After caching, the same code runs from local disk:</p>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># identical call -- routed to BiocFileCache automatically</span></span>
+<span><span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_info"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Symbol</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TP53"</span>, <span class="st">"BRCA1"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Symbol</span>, <span class="va">GeneID</span>, <span class="va">map_location</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>To refresh a cached resource (e.g. after uploading a new parquet to the bucket):</p>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/cache_by_taxon.html">cache_by_taxon</a></span><span class="op">(</span><span class="fl">9606L</span>, resources <span class="op">=</span> <span class="st">"gene_info"</span>, force <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="freezing-a-snapshot-for-reproducibility">Freezing a snapshot for reproducibility<a class="anchor" aria-label="anchor" href="#freezing-a-snapshot-for-reproducibility"></a>
+</h3>
+<p>A live cache entry can be overwritten at any time by a <code>force=TRUE</code> call to <code><a href="../reference/cache_by_taxon.html">cache_by_taxon()</a></code>. To preserve a specific version of the data for reproducibility – e.g. when publishing an analysis – use <code><a href="../reference/freeze_taxon_cache.html">freeze_taxon_cache()</a></code>. It makes a physical copy of each live cached parquet under an identifying tag. Frozen entries are never removed by <code><a href="../reference/clear_taxon_cache.html">clear_taxon_cache()</a></code>.</p>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># after cache_by_taxon(9606L) has been called:</span></span>
+<span><span class="fu"><a href="../reference/freeze_taxon_cache.html">freeze_taxon_cache</a></span><span class="op">(</span><span class="fl">9606L</span>, tag <span class="op">=</span> <span class="st">"paper_2026_07"</span><span class="op">)</span></span></code></pre></div>
+<p>Frozen snapshots appear in <code><a href="../reference/taxon_cache_info.html">taxon_cache_info()</a></code> alongside live entries:</p>
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/taxon_cache_info.html">taxon_cache_info</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##                                                             rname</span></span>
+<span><span class="co">## 1                     gene_info_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 2                gene_orthologs_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 3  gene_refseq_uniprotkb_collab_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 4                gene2accession_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 5                  gene2ensembl_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 6                       gene2go_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 7                   gene2pubmed_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 8                   gene2refseq_taxid9606_frozen_23julVJC.parquet</span></span>
+<span><span class="co">## 9                               gene_orthologs_taxid10090.parquet</span></span>
+<span><span class="co">## 10                    gene_orthologs_taxid10090_frozen_v1.parquet</span></span>
+<span><span class="co">##                                                                                                         rpath</span></span>
+<span><span class="co">## 1  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff4c8c6bd9_file16cff6d816eb9.parquet</span></span>
+<span><span class="co">## 2  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff6d735ff4_file16cff22185cc8.parquet</span></span>
+<span><span class="co">## 3  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff3563dc8b_file16cff31b837fd.parquet</span></span>
+<span><span class="co">## 4  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff4987d819_file16cff7631f3f6.parquet</span></span>
+<span><span class="co">## 5  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff2ac55ec6_file16cff3e6a2585.parquet</span></span>
+<span><span class="co">## 6  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff7cd5c4d9_file16cff1a6b55eb.parquet</span></span>
+<span><span class="co">## 7  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff66e81dc6_file16cff21a921c5.parquet</span></span>
+<span><span class="co">## 8   /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff50e05fc_file16cff48502293.parquet</span></span>
+<span><span class="co">## 9    /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/54287e0666d7_file54281f35b13a.parquet</span></span>
+<span><span class="co">## 10    /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/5428237044b6_file5428fa13ffe.parquet</span></span>
+<span><span class="co">##            create_time</span></span>
+<span><span class="co">## 1  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 2  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 3  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 4  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 5  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 6  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 7  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 8  2026-07-23 12:17:55</span></span>
+<span><span class="co">## 9  2026-07-23 13:27:39</span></span>
+<span><span class="co">## 10 2026-07-23 13:27:39</span></span></code></pre>
+<p>To query a frozen snapshot, pass <code>freeze_tag</code> to <code><a href="../reference/open_ncbi_gene.html">open_ncbi_gene()</a></code> – or to any function that calls it. The function stops with an informative message if the tag does not exist:</p>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/open_ncbi_gene.html">open_ncbi_gene</a></span><span class="op">(</span><span class="st">"gene_info"</span>, taxid <span class="op">=</span> <span class="fl">9606L</span>, freeze_tag <span class="op">=</span> <span class="st">"paper_2026_07"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Symbol</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TP53"</span>, <span class="st">"BRCA1"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Symbol</span>, <span class="va">GeneID</span>, <span class="va">map_location</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># propagates through join_ncbi_gene and mapIdsNG too:</span></span>
+<span><span class="fu"><a href="../reference/mapIdsNG.html">mapIdsNG</a></span><span class="op">(</span>keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TP53"</span>, <span class="st">"BRCA1"</span><span class="op">)</span>, keytype <span class="op">=</span> <span class="st">"Symbol"</span>, column <span class="op">=</span> <span class="st">"GeneID"</span>,</span>
+<span>         taxid <span class="op">=</span> <span class="fl">9606L</span><span class="op">)</span>   <span class="co"># uses live cache or remote, not the frozen snapshot</span></span></code></pre></div>
+<p>Duplicate tags are rejected unless <code>force=TRUE</code>:</p>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/freeze_taxon_cache.html">freeze_taxon_cache</a></span><span class="op">(</span><span class="fl">9606L</span>, tag <span class="op">=</span> <span class="st">"paper_2026_07"</span><span class="op">)</span>          <span class="co"># error: tag exists</span></span>
+<span><span class="fu"><a href="../reference/freeze_taxon_cache.html">freeze_taxon_cache</a></span><span class="op">(</span><span class="fl">9606L</span>, tag <span class="op">=</span> <span class="st">"paper_2026_07"</span>, force <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>  <span class="co"># OK</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
 <h2 id="session-information">Session information<a class="anchor" aria-label="anchor" href="#session-information"></a>
 </h2>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## R version 4.6.1 (2026-06-24)</span></span>
 <span><span class="co">## Platform: aarch64-apple-darwin23</span></span>
@@ -412,7 +525,7 @@
 <span><span class="co">## [8] base     </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
-<span><span class="co">##  [1] dplyr_1.2.1          RNCBIGene_0.1.0      org.Hs.eg.db_3.23.1 </span></span>
+<span><span class="co">##  [1] dplyr_1.2.1          RNCBIGene_0.1.6      org.Hs.eg.db_3.23.1 </span></span>
 <span><span class="co">##  [4] AnnotationDbi_1.75.0 IRanges_2.47.2       S4Vectors_0.51.5    </span></span>
 <span><span class="co">##  [7] Biobase_2.73.1       BiocGenerics_0.59.10 generics_0.1.4      </span></span>
 <span><span class="co">## [10] BiocStyle_2.41.0    </span></span>

@@ -218,7 +218,7 @@ class(tbl)
     ## [1] "tbl_duckdb_connection" "tbl_dbi"               "tbl_sql"              
     ## [4] "tbl_lazy"              "tbl"
 
-The object is a lazy SQL-backed tbl — inspecting it triggers a small
+The object is a lazy SQL-backed tbl – inspecting it triggers a small
 preview fetch but does not load the full dataset.
 
 Compose a multi-step query before collecting:
@@ -264,7 +264,7 @@ open_ncbi_gene("gene_orthologs") |>
 Before composing a query it is useful to know what columns a resource
 provides. `ncbi_gene_fields()` queries the duckdb schema for any
 resource and returns a data frame of column names and their duckdb types
-— no data rows are fetched.
+– no data rows are fetched.
 
 <div id="cb17" class="sourceCode">
 
@@ -444,7 +444,7 @@ mapIdsNG(keys = "Lilrb4a", keytype = "Symbol", column = "Ensembl",
     ## "ENSMUSG00000112148"
 
 For the full transcript-level picture we join `gene_info` (filtered to
-the symbol) against `gene2ensembl` entirely within duckdb — both lazy
+the symbol) against `gene2ensembl` entirely within duckdb – both lazy
 tbls share the same connection, so the join is pushed down before any
 data is collected:
 
@@ -472,10 +472,10 @@ open_ncbi_gene("gene2ensembl", taxid = 10090L) |>
     ## 3 Lilrb4a ENSMUSG00000062593      ENSMUST00000218123.2   ENSMUSP00000151827.2   
     ## # ℹ abbreviated name: ¹​Ensembl_protein_identifier
 
-The result reveals two distinct Ensembl gene models for *Lilrb4a* —
-something that a two-step approach (Symbol → one gene ID → transcripts)
-would have missed. Joining directly on `GeneID` returns all Ensembl
-records for the gene in a single query.
+The result reveals two distinct Ensembl gene models for *Lilrb4a* –
+something that a two-step approach (Symbol -&gt; one gene ID -&gt;
+transcripts) would have missed. Joining directly on `GeneID` returns all
+Ensembl records for the gene in a single query.
 
 </div>
 
@@ -534,7 +534,7 @@ local_ids <- data.frame(GeneID = c(94103L, 7157L, 672L))
 
 </div>
 
-**GO terms** — one row per gene-GO pair:
+**GO terms** – one row per gene-GO pair:
 
 <div id="cb38" class="sourceCode">
 
@@ -568,7 +568,7 @@ head(go_tbl)
     ## 5  94103 GO:0005789 endoplasmic reticulum membrane             IEA      Compone…
     ## 6  94103 GO:0005886 plasma membrane                            TAS      Compone…
 
-**RefSeq identifiers** — one row per gene-transcript pair (excluding
+**RefSeq identifiers** – one row per gene-transcript pair (excluding
 entries with no RNA accession):
 
 <div id="cb42" class="sourceCode">
@@ -616,9 +616,200 @@ after collecting, depending on the downstream analysis.
 
 <div class="section level2">
 
-## Session information
+## Caching for offline or high-performance use
+
+All queries above route to the OSN bucket on every call. For a species
+you work with repeatedly, `cache_by_taxon()` performs a one-time filter
+of each remote parquet down to that taxon and stores the result in
+`BiocFileCache`. After that, `open_ncbi_gene()` – and every function
+that calls it (`join_ncbi_gene()`, `mapIdsNG()`, `ncbi_gene_fields()`) –
+silently routes to the local file instead of the bucket, with no change
+to the API.
+
+The filtering uses duckdb’s `COPY ... TO` statement, so data streams
+directly to disk without passing through R memory.
 
 <div id="cb46" class="sourceCode">
+
+``` r
+# one-time setup -- slow for large resources, fast thereafter
+cache_by_taxon(9606L)   # human: all eight resources
+```
+
+</div>
+
+Check what is cached:
+
+<div id="cb47" class="sourceCode">
+
+``` r
+taxon_cache_info()   # all cached taxons; taxon_cache_info(9606L) for one taxon
+```
+
+</div>
+
+    ##                                                             rname
+    ## 1                     gene_info_taxid9606_frozen_23julVJC.parquet
+    ## 2                gene_orthologs_taxid9606_frozen_23julVJC.parquet
+    ## 3  gene_refseq_uniprotkb_collab_taxid9606_frozen_23julVJC.parquet
+    ## 4                gene2accession_taxid9606_frozen_23julVJC.parquet
+    ## 5                  gene2ensembl_taxid9606_frozen_23julVJC.parquet
+    ## 6                       gene2go_taxid9606_frozen_23julVJC.parquet
+    ## 7                   gene2pubmed_taxid9606_frozen_23julVJC.parquet
+    ## 8                   gene2refseq_taxid9606_frozen_23julVJC.parquet
+    ## 9                               gene_orthologs_taxid10090.parquet
+    ## 10                    gene_orthologs_taxid10090_frozen_v1.parquet
+    ##                                                                                                         rpath
+    ## 1  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff4c8c6bd9_file16cff6d816eb9.parquet
+    ## 2  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff6d735ff4_file16cff22185cc8.parquet
+    ## 3  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff3563dc8b_file16cff31b837fd.parquet
+    ## 4  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff4987d819_file16cff7631f3f6.parquet
+    ## 5  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff2ac55ec6_file16cff3e6a2585.parquet
+    ## 6  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff7cd5c4d9_file16cff1a6b55eb.parquet
+    ## 7  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff66e81dc6_file16cff21a921c5.parquet
+    ## 8   /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff50e05fc_file16cff48502293.parquet
+    ## 9    /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/54287e0666d7_file54281f35b13a.parquet
+    ## 10    /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/5428237044b6_file5428fa13ffe.parquet
+    ##            create_time
+    ## 1  2026-07-23 12:17:55
+    ## 2  2026-07-23 12:17:55
+    ## 3  2026-07-23 12:17:55
+    ## 4  2026-07-23 12:17:55
+    ## 5  2026-07-23 12:17:55
+    ## 6  2026-07-23 12:17:55
+    ## 7  2026-07-23 12:17:55
+    ## 8  2026-07-23 12:17:55
+    ## 9  2026-07-23 13:27:39
+    ## 10 2026-07-23 13:27:39
+
+After caching, the same code runs from local disk:
+
+<div id="cb49" class="sourceCode">
+
+``` r
+# identical call -- routed to BiocFileCache automatically
+open_ncbi_gene("gene_info", taxid = 9606L) |>
+  dplyr::filter(Symbol %in% c("TP53", "BRCA1")) |>
+  dplyr::select(Symbol, GeneID, map_location) |>
+  dplyr::collect()
+```
+
+</div>
+
+To refresh a cached resource (e.g. after uploading a new parquet to the
+bucket):
+
+<div id="cb50" class="sourceCode">
+
+``` r
+cache_by_taxon(9606L, resources = "gene_info", force = TRUE)
+```
+
+</div>
+
+<div class="section level3">
+
+### Freezing a snapshot for reproducibility
+
+A live cache entry can be overwritten at any time by a `force=TRUE` call
+to `cache_by_taxon()`. To preserve a specific version of the data for
+reproducibility – e.g. when publishing an analysis – use
+`freeze_taxon_cache()`. It makes a physical copy of each live cached
+parquet under an identifying tag. Frozen entries are never removed by
+`clear_taxon_cache()`.
+
+<div id="cb51" class="sourceCode">
+
+``` r
+# after cache_by_taxon(9606L) has been called:
+freeze_taxon_cache(9606L, tag = "paper_2026_07")
+```
+
+</div>
+
+Frozen snapshots appear in `taxon_cache_info()` alongside live entries:
+
+<div id="cb52" class="sourceCode">
+
+``` r
+taxon_cache_info()
+```
+
+</div>
+
+    ##                                                             rname
+    ## 1                     gene_info_taxid9606_frozen_23julVJC.parquet
+    ## 2                gene_orthologs_taxid9606_frozen_23julVJC.parquet
+    ## 3  gene_refseq_uniprotkb_collab_taxid9606_frozen_23julVJC.parquet
+    ## 4                gene2accession_taxid9606_frozen_23julVJC.parquet
+    ## 5                  gene2ensembl_taxid9606_frozen_23julVJC.parquet
+    ## 6                       gene2go_taxid9606_frozen_23julVJC.parquet
+    ## 7                   gene2pubmed_taxid9606_frozen_23julVJC.parquet
+    ## 8                   gene2refseq_taxid9606_frozen_23julVJC.parquet
+    ## 9                               gene_orthologs_taxid10090.parquet
+    ## 10                    gene_orthologs_taxid10090_frozen_v1.parquet
+    ##                                                                                                         rpath
+    ## 1  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff4c8c6bd9_file16cff6d816eb9.parquet
+    ## 2  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff6d735ff4_file16cff22185cc8.parquet
+    ## 3  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff3563dc8b_file16cff31b837fd.parquet
+    ## 4  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff4987d819_file16cff7631f3f6.parquet
+    ## 5  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff2ac55ec6_file16cff3e6a2585.parquet
+    ## 6  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff7cd5c4d9_file16cff1a6b55eb.parquet
+    ## 7  /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff66e81dc6_file16cff21a921c5.parquet
+    ## 8   /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/16cff50e05fc_file16cff48502293.parquet
+    ## 9    /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/54287e0666d7_file54281f35b13a.parquet
+    ## 10    /Users/vincentcarey/Library/Caches/org.R-project.R/R/BiocFileCache/5428237044b6_file5428fa13ffe.parquet
+    ##            create_time
+    ## 1  2026-07-23 12:17:55
+    ## 2  2026-07-23 12:17:55
+    ## 3  2026-07-23 12:17:55
+    ## 4  2026-07-23 12:17:55
+    ## 5  2026-07-23 12:17:55
+    ## 6  2026-07-23 12:17:55
+    ## 7  2026-07-23 12:17:55
+    ## 8  2026-07-23 12:17:55
+    ## 9  2026-07-23 13:27:39
+    ## 10 2026-07-23 13:27:39
+
+To query a frozen snapshot, pass `freeze_tag` to `open_ncbi_gene()` – or
+to any function that calls it. The function stops with an informative
+message if the tag does not exist:
+
+<div id="cb54" class="sourceCode">
+
+``` r
+open_ncbi_gene("gene_info", taxid = 9606L, freeze_tag = "paper_2026_07") |>
+  dplyr::filter(Symbol %in% c("TP53", "BRCA1")) |>
+  dplyr::select(Symbol, GeneID, map_location) |>
+  dplyr::collect()
+
+# propagates through join_ncbi_gene and mapIdsNG too:
+mapIdsNG(keys = c("TP53", "BRCA1"), keytype = "Symbol", column = "GeneID",
+         taxid = 9606L)   # uses live cache or remote, not the frozen snapshot
+```
+
+</div>
+
+Duplicate tags are rejected unless `force=TRUE`:
+
+<div id="cb55" class="sourceCode">
+
+``` r
+freeze_taxon_cache(9606L, tag = "paper_2026_07")          # error: tag exists
+freeze_taxon_cache(9606L, tag = "paper_2026_07", force = TRUE)  # OK
+```
+
+</div>
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## Session information
+
+<div id="cb56" class="sourceCode">
 
 ``` r
 sessionInfo()
@@ -645,7 +836,7 @@ sessionInfo()
     ## [8] base     
     ## 
     ## other attached packages:
-    ##  [1] dplyr_1.2.1          RNCBIGene_0.1.0      org.Hs.eg.db_3.23.1 
+    ##  [1] dplyr_1.2.1          RNCBIGene_0.1.6      org.Hs.eg.db_3.23.1 
     ##  [4] AnnotationDbi_1.75.0 IRanges_2.47.2       S4Vectors_0.51.5    
     ##  [7] Biobase_2.73.1       BiocGenerics_0.59.10 generics_0.1.4      
     ## [10] BiocStyle_2.41.0    
