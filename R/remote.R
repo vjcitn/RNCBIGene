@@ -32,7 +32,18 @@ ngurl <- function(gres = "gene2pubmed") {
   if (is.null(taxid)) return(NULL)
   key <- sprintf("%s_taxid%s.parquet", gres, taxid)
   pa  <- BiocFileCache::bfcquery(.ncbi_cache(), key, field = "rname")
+  pa  <- pa[!grepl("_frozen_", pa$rname), ]
   if (nrow(pa) == 1L) pa$rpath else NULL
+}
+
+# Return the path of a frozen snapshot, or stop() if not found.
+.frozen_parquet_path <- function(gres, taxid, tag) {
+  key <- sprintf("%s_taxid%s_frozen_%s.parquet", gres, taxid, tag)
+  pa  <- BiocFileCache::bfcquery(.ncbi_cache(), key, field = "rname")
+  if (nrow(pa) == 1L) return(pa$rpath)
+  stop(sprintf(
+    "No frozen snapshot '%s' found for resource '%s' taxid %s.\nCall freeze_taxon_cache(%s, tag='%s') first.",
+    tag, gres, taxid, taxid, tag))
 }
 
 #' get or create a persistent duckdb connection with httpfs loaded
@@ -81,6 +92,8 @@ ncbi_gene_fields <- function(resource = "gene_info") {
 #' open a lazy dplyr tbl over a remote NCBI Gene parquet resource
 #' @param resource character(1) parquet resource name, with or without .parquet suffix
 #' @param taxid integer(1) or NULL; when non-NULL, pre-filters to this taxonomy ID in SQL
+#' @param freeze_tag character(1) or NULL; when set, opens a frozen snapshot created by
+#'   \code{freeze_taxon_cache(taxid, tag=freeze_tag)} and fails if the tag is not found
 #' @return lazy dplyr::tbl backed by duckdb -- compose filter/select/collect before pulling data
 #' @examples
 #' if (is_online()) {
@@ -90,7 +103,7 @@ ncbi_gene_fields <- function(resource = "gene_info") {
 #'     dplyr::collect()
 #' }
 #' @export
-open_ncbi_gene <- function(resource = "gene_info", taxid = NULL) {
+open_ncbi_gene <- function(resource = "gene_info", taxid = NULL, freeze_tag = NULL) {
   gres  <- sub("\\.parquet$", "", resource)
   avail <- .ncbi_resource_names()
   if (!gres %in% avail)
@@ -98,7 +111,11 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL) {
       "'%s' is not an available resource.\nCall available_ncbi_parquet() to see options.",
       gres))
   con   <- ncbi_gene_con()
-  local <- .cached_parquet_path(gres, taxid)
+
+  local <- if (!is.null(freeze_tag))
+    .frozen_parquet_path(gres, taxid, freeze_tag)   # stops if not found
+  else
+    .cached_parquet_path(gres, taxid)
 
   if (!is.null(local)) {
     vname  <- paste0("v_local_", gsub("[^A-Za-z0-9]", "_", gres), "_", taxid)

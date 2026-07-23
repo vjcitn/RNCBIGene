@@ -4,12 +4,15 @@
 \alias{open_ncbi_gene}
 \title{open a lazy dplyr tbl over a remote NCBI Gene parquet resource}
 \usage{
-open_ncbi_gene(resource = "gene_info", taxid = NULL)
+open_ncbi_gene(resource = "gene_info", taxid = NULL, freeze_tag = NULL)
 }
 \arguments{
 \item{resource}{character(1) parquet resource name, with or without .parquet suffix}
 
 \item{taxid}{integer(1) or NULL; when non-NULL, pre-filters to this taxonomy ID in SQL}
+
+\item{freeze_tag}{character(1) or NULL; when set, opens a frozen snapshot created by
+\code{freeze_taxon_cache(taxid, tag=freeze_tag)} and fails if the tag is not found}
 }
 \value{
 lazy dplyr::tbl backed by duckdb -- compose filter/select/collect before pulling data

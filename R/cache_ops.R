@@ -211,13 +211,89 @@ taxon_cache_info <- function(taxid = NULL,
 clear_taxon_cache <- function(taxid = NULL, cache = .ncbi_cache()) {
   pattern <- if (is.null(taxid)) "_taxid" else sprintf("_taxid%s", taxid)
   pa <- BiocFileCache::bfcquery(cache, pattern, field = "rname")
+  pa <- pa[!grepl("_frozen_", pa$rname), ]   # never remove frozen snapshots
   if (nrow(pa) == 0L) {
-    message("No cached entries found.")
+    message("No live cached entries found.")
     return(invisible(character(0)))
   }
   BiocFileCache::bfcremove(cache, pa$rid)
-  message(sprintf("Removed %d cached parquet(s).", nrow(pa)))
+  message(sprintf("Removed %d live cached parquet(s).", nrow(pa)))
   invisible(pa$rname)
+}
+
+#' freeze a snapshot of taxon-cached parquets for reproducibility
+#'
+#' Copies the current live cached parquets for a taxon into permanent
+#' BiocFileCache entries labelled with an identifying tag.  The frozen copies
+#' are independent of the live cache: subsequent \code{cache_by_taxon()} or
+#' \code{clear_taxon_cache()} calls do not affect them.  Use
+#' \code{open_ncbi_gene(resource, taxid, freeze_tag=tag)} to query a frozen
+#' snapshot.
+#'
+#' @param taxid integer(1) NCBI taxonomy ID
+#' @param tag character(1) identifying label for this snapshot; must not already
+#'   exist in the cache unless \code{force=TRUE}
+#' @param resources character vector of resource names to freeze; defaults to
+#'   all resources currently cached for this taxon
+#' @param cache a \code{BiocFileCache} object
+#' @param force logical(1) if TRUE, overwrite an existing frozen snapshot with
+#'   the same tag
+#' @return invisibly, a named character vector of frozen local parquet paths
+#' @examples
+#' if (is_online()) {
+#'   cache_by_taxon(10090L, resources = "gene_orthologs")
+#'   freeze_taxon_cache(10090L, tag = "v1", resources = "gene_orthologs")
+#'   taxon_cache_info(10090L)
+#' }
+#' @export
+freeze_taxon_cache <- function(taxid, tag,
+                                resources = NULL,
+                                cache     = .ncbi_cache(),
+                                force     = FALSE) {
+  stopifnot(is.character(tag), length(tag) == 1L, nchar(tag) > 0L)
+
+  # reject tag if already present (unless force)
+  existing_tag <- BiocFileCache::bfcquery(cache,
+    sprintf("_frozen_%s\\.parquet", tag), field = "rname")
+  if (nrow(existing_tag) > 0L && !force)
+    stop(sprintf(
+      "Tag '%s' already exists in cache. Use force=TRUE to overwrite.", tag))
+
+  # default resources: whatever is live-cached for this taxon
+  if (is.null(resources)) {
+    live_all <- BiocFileCache::bfcquery(cache,
+      sprintf("_taxid%s\\.parquet", taxid), field = "rname")
+    live_all  <- live_all[!grepl("_frozen_", live_all$rname), ]
+    if (nrow(live_all) == 0L)
+      stop(sprintf("No live cache found for taxid %s. Run cache_by_taxon(%s) first.", taxid, taxid))
+    resources <- sub(sprintf("_taxid%s\\.parquet", taxid), "", live_all$rname)
+  }
+
+  paths <- character(length(resources))
+  names(paths) <- resources
+
+  for (gres in resources) {
+    live_key <- sprintf("%s_taxid%s.parquet", gres, taxid)
+    live     <- BiocFileCache::bfcquery(cache, live_key, field = "rname")
+    live     <- live[!grepl("_frozen_", live$rname), ]
+    if (nrow(live) == 0L)
+      stop(sprintf(
+        "No live cache for '%s' taxid %s. Run cache_by_taxon(%s) first.",
+        gres, taxid, taxid))
+
+    frozen_key <- sprintf("%s_taxid%s_frozen_%s.parquet", gres, taxid, tag)
+    old_frozen <- BiocFileCache::bfcquery(cache, frozen_key, field = "rname")
+    if (nrow(old_frozen) == 1L && force)
+      BiocFileCache::bfcremove(cache, old_frozen$rid)
+
+    tmp <- tempfile(fileext = ".parquet")
+    file.copy(live$rpath, tmp)
+    rid          <- BiocFileCache::bfcadd(cache, rname = frozen_key,
+                                           fpath = tmp, action = "move")
+    paths[[gres]] <- BiocFileCache::bfcrpath(cache, rid)
+    message(sprintf("  frozen: %s", frozen_key))
+  }
+  invisible(paths)
 }
 
 #' download a parquet file from the OSN bucket to local BiocFileCache
