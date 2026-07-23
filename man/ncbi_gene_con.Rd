@@ -15,3 +15,12 @@ The duckdb httpfs extension is cached in a permanent user directory
 The directory can be inspected with
 \code{tools::R_user_dir("RNCBIGene", "data")}.
 }
+\section{Connection invalidation}{
+
+If the connection becomes invalid (e.g. duckdb encounters an internal
+error) a new connection is created automatically.  However, all duckdb
+VIEWs created by previous \code{open_ncbi_gene()} calls are lost and any
+lazy \code{tbl} objects that reference them will fail when collected.
+Re-call \code{open_ncbi_gene()} to recreate the required VIEWs.
+}
+

@@ -52,6 +52,14 @@ ngurl <- function(gres = "gene2pubmed") {
 #' (via \code{tools::R_user_dir}) so it is not re-downloaded each session.
 #' The directory can be inspected with
 #' \code{tools::R_user_dir("RNCBIGene", "data")}.
+#'
+#' @section Connection invalidation:
+#' If the connection becomes invalid (e.g. duckdb encounters an internal
+#' error) a new connection is created automatically.  However, all duckdb
+#' VIEWs created by previous \code{open_ncbi_gene()} calls are lost and any
+#' lazy \code{tbl} objects that reference them will fail when collected.
+#' Re-call \code{open_ncbi_gene()} to recreate the required VIEWs.
+#'
 #' @return a DBI connection to an in-process duckdb instance
 #' @export
 ncbi_gene_con <- function() {
@@ -61,8 +69,11 @@ ncbi_gene_con <- function() {
     ext_dir <- tools::R_user_dir("RNCBIGene", "data")
     if (!dir.exists(ext_dir))
       dir.create(ext_dir, recursive = TRUE)
-    options(duckdb.extension_directory = ext_dir)
-    con <- DBI::dbConnect(duckdb::duckdb())
+    # Pass extension_directory via the driver config rather than options() to
+    # avoid mutating the caller's global R options.
+    con <- DBI::dbConnect(
+      duckdb::duckdb(config = list(extension_directory = as.character(ext_dir)))
+    )
     DBI::dbExecute(con, "INSTALL httpfs; LOAD httpfs;")
     .rncbigene_env$con <- con
   }
