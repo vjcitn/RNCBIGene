@@ -13,6 +13,21 @@ ngurl <- function(gres = "gene2pubmed") {
   .rncbigene_env$resources
 }
 
+# Return the package-level BiocFileCache, creating it once per session.
+.ncbi_cache <- function() {
+  if (!exists("cache", envir = .rncbigene_env))
+    .rncbigene_env$cache <- BiocFileCache::BiocFileCache()
+  .rncbigene_env$cache
+}
+
+# Return the local BiocFileCache path for (gres, taxid) if it exists, else NULL.
+.cached_parquet_path <- function(gres, taxid) {
+  if (is.null(taxid)) return(NULL)
+  key <- sprintf("%s_taxid%s.parquet", gres, taxid)
+  pa  <- BiocFileCache::bfcquery(.ncbi_cache(), key, field = "rname")
+  if (nrow(pa) == 1L) pa$rpath else NULL
+}
+
 #' get or create a persistent duckdb connection with httpfs loaded
 #'
 #' The duckdb httpfs extension is cached in a permanent user directory
@@ -76,6 +91,16 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL) {
       "'%s' is not an available resource.\nCall available_ncbi_parquet() to see options.",
       gres))
   con   <- ncbi_gene_con()
+  local <- .cached_parquet_path(gres, taxid)
+
+  if (!is.null(local)) {
+    vname <- paste0("v_local_", gsub("[^A-Za-z0-9]", "_", gres), "_", taxid)
+    DBI::dbExecute(con, sprintf(
+      "CREATE OR REPLACE VIEW %s AS SELECT * FROM read_parquet('%s')", vname, local))
+    tbl <- dplyr::tbl(con, vname)
+    return(dplyr::select(tbl, -dplyr::all_of("#tax_id")))
+  }
+
   url   <- ngurl(gres)
   vname <- paste0("v_", gsub("[^A-Za-z0-9]", "_", gres))
   DBI::dbExecute(con, sprintf(

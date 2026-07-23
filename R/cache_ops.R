@@ -115,6 +115,84 @@ ncbi_parquet_info <- function() {
   info[order(info$resource), ]
 }
 
+#' filter and cache parquet resources for a single taxon in BiocFileCache
+#'
+#' Performs a one-time download-and-filter of remote NCBI Gene parquet files to
+#' local parquet files stored in BiocFileCache.  After calling this function,
+#' \code{open_ncbi_gene(resource, taxid)} will automatically route to the local
+#' cached file instead of querying the OSN bucket, with no change to the API.
+#'
+#' @param taxid integer(1) NCBI taxonomy ID (e.g. 9606L for human, 10090L for mouse)
+#' @param resources character vector of resource names (without .parquet suffix)
+#'   to cache; defaults to all resources in the bucket
+#' @param cache a \code{BiocFileCache} object
+#' @param force logical(1) if TRUE, re-download and overwrite existing cache entries
+#' @param verbose logical(1) print progress messages
+#' @return invisibly, a named character vector of local parquet paths
+#' @examples
+#' if (is_online()) {
+#'   # cache only the smallest resource for illustration
+#'   cache_by_taxon(10090L, resources = "gene_orthologs")
+#'   taxon_cache_info(10090L)
+#' }
+#' @export
+cache_by_taxon <- function(
+    taxid,
+    resources = sub("\\.parquet$", "", available_ncbi_parquet()),
+    cache     = .ncbi_cache(),
+    force     = FALSE,
+    verbose   = TRUE) {
+
+  paths <- character(length(resources))
+  names(paths) <- resources
+
+  for (gres in resources) {
+    key      <- sprintf("%s_taxid%s.parquet", gres, taxid)
+    existing <- BiocFileCache::bfcquery(cache, key, field = "rname")
+
+    if (nrow(existing) == 1L && !force) {
+      if (verbose) message(sprintf("  %s: already cached", key))
+      paths[[gres]] <- existing$rpath
+      next
+    }
+
+    if (verbose) message(sprintf("  %s: filtering from OSN ...", gres))
+
+    open_ncbi_gene(gres)  # validates resource name and creates VIEW
+    vname <- paste0("v_", gsub("[^A-Za-z0-9]", "_", gres))
+    tmp   <- tempfile(fileext = ".parquet")
+
+    DBI::dbExecute(ncbi_gene_con(), sprintf(
+      "COPY (SELECT * FROM %s WHERE \"#tax_id\" = %s)
+       TO '%s' (FORMAT parquet, COMPRESSION zstd, COMPRESSION_LEVEL 15)",
+      vname, taxid, tmp))
+
+    if (nrow(existing) == 1L && force)
+      BiocFileCache::bfcremove(cache, existing$rid)
+
+    rid           <- BiocFileCache::bfcadd(cache, rname = key,
+                                            fpath = tmp, action = "move")
+    paths[[gres]] <- BiocFileCache::bfcrpath(cache, rid)
+    if (verbose) message(sprintf("  %s: done", key))
+  }
+  invisible(paths)
+}
+
+#' list taxon-specific parquets stored in BiocFileCache
+#'
+#' @param taxid integer(1) or NULL; when NULL lists all cached taxon parquets
+#' @param cache a \code{BiocFileCache} object
+#' @return data.frame with columns \code{rname}, \code{rpath}, \code{create_time}
+#' @examples
+#' taxon_cache_info()
+#' @export
+taxon_cache_info <- function(taxid = NULL,
+                              cache = .ncbi_cache()) {
+  pattern <- if (is.null(taxid)) "_taxid" else sprintf("_taxid%s", taxid)
+  pa <- BiocFileCache::bfcquery(cache, pattern, field = "rname")
+  as.data.frame(pa[, c("rname", "rpath", "create_time")])
+}
+
 #' download a parquet file from the OSN bucket to local BiocFileCache
 #' @import BiocFileCache
 #' @importFrom utils download.file
