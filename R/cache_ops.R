@@ -242,7 +242,8 @@ clear_taxon_cache <- function(taxid = NULL, cache = .ncbi_cache()) {
 #' @examples
 #' if (is_online()) {
 #'   cache_by_taxon(10090L, resources = "gene_orthologs")
-#'   freeze_taxon_cache(10090L, tag = "v1", resources = "gene_orthologs")
+#'   freeze_taxon_cache(10090L, tag = "v1", resources = "gene_orthologs",
+#'                      force = TRUE)
 #'   taxon_cache_info(10090L)
 #' }
 #' @export
