@@ -234,16 +234,57 @@ Unmatched keys (here `XyZZY`) appear with `NA` in the annotation columns
 because the default join type is `"left"`.  Switch to `type = "inner"` to drop
 them.
 
-The same pattern works against any resource.  For example, attach GO terms to
-a local set of Entrez IDs via `gene2go`:
+## Enriching a GeneID table with GO terms and RefSeq identifiers
+
+When multiple annotation resources are needed, each requires a **separate**
+join back to the original data frame.  GO terms and RefSeq identifiers are
+both one-to-many relationships with GeneID: three genes yield hundreds of GO
+annotations and hundreds of transcript/protein pairs.  Joining both resources
+in a single query would produce a Cartesian product; the correct pattern is two
+independent joins.
+
+First, discover what fields each resource provides:
+
+```{r lkfields}
+ncbi_gene_fields("gene2go")[, 1:2]
+ncbi_gene_fields("gene2refseq")[c(1,2,4,6), ]
+```
+
+Start with a local data frame of Entrez IDs:
 
 ```{r lkjoin2}
 local_ids <- data.frame(GeneID = c(94103L, 7157L, 672L))
-join_ncbi_gene(local_ids, by = "GeneID", resource = "gene2go",
-               taxid = 9606L, type = "inner") |>
-  select(GeneID, GO_ID, Evidence, Qualifier) |>
-  collect()
 ```
+
+**GO terms** — one row per gene-GO pair:
+
+```{r lkjoin_go}
+go_tbl <- join_ncbi_gene(local_ids, by = "GeneID",
+                          resource = "gene2go", taxid = 9606L) |>
+  select(GeneID, GO_ID, GO_term, Evidence, Category) |>
+  collect()
+nrow(go_tbl)
+head(go_tbl)
+```
+
+**RefSeq identifiers** — one row per gene-transcript pair (excluding entries
+with no RNA accession):
+
+```{r lkjoin_refseq}
+refseq_tbl <- join_ncbi_gene(local_ids, by = "GeneID",
+                              resource = "gene2refseq", taxid = 9606L) |>
+  select(GeneID,
+         RNA   = RNA_nucleotide_accession.version,
+         protein = protein_accession.version) |>
+  filter(RNA != "-") |>
+  collect()
+nrow(refseq_tbl)
+head(refseq_tbl)
+```
+
+Each result shares the `GeneID` key with the original `local_ids` data frame
+and can be used independently or merged with `dplyr::left_join()` after
+collecting, depending on the downstream analysis.
 
 # Session information
 
