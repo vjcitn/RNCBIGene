@@ -43,6 +43,20 @@ test_that("open_ncbi_gene returns a lazy tbl (not a data.frame)", {
   expect_true(inherits(tbl, "tbl_lazy"))
 })
 
+test_that("open_ncbi_gene drops #tax_id when taxid is specified", {
+  skip_if_offline()
+  cols <- open_ncbi_gene("gene_info", taxid = 9606L) |>
+    head(1) |> dplyr::collect() |> colnames()
+  expect_false("#tax_id" %in% cols)
+})
+
+test_that("open_ncbi_gene retains #tax_id when taxid is NULL", {
+  skip_if_offline()
+  cols <- open_ncbi_gene("gene_info") |>
+    head(1) |> dplyr::collect() |> colnames()
+  expect_true("#tax_id" %in% cols)
+})
+
 test_that("open_ncbi_gene taxid filter reduces rows vs no filter", {
   skip_if_offline()
   n_human <- open_ncbi_gene("gene_info", taxid = 9606L) |>

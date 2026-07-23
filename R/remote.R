@@ -82,7 +82,8 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL) {
     "CREATE OR REPLACE VIEW %s AS SELECT * FROM read_parquet('%s')", vname, url))
   tbl <- dplyr::tbl(con, vname)
   if (!is.null(taxid))
-    tbl <- dplyr::filter(tbl, .data[["#tax_id"]] == taxid)
+    tbl <- dplyr::filter(tbl, .data[["#tax_id"]] == taxid) |>
+           dplyr::select(-dplyr::all_of("#tax_id"))
   tbl
 }
 
