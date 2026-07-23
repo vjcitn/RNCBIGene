@@ -146,11 +146,30 @@ open_ncbi_gene("gene_orthologs") |>
   collect()
 ```
 
-The available column names for a resource can be inspected from the bundled
-`litparquet` subset without hitting the network:
+# Discovering available fields with `ncbi_gene_fields()`
 
-```{r lkids}
-colnames(litpop[["lit.gene_info.parquet"]])
+Before composing a query it is useful to know what columns a resource
+provides.  `ncbi_gene_fields()` queries the duckdb schema for any resource and
+returns a data frame of column names and their duckdb types — no data rows are
+fetched.
+
+```{r lkfields_info}
+ncbi_gene_fields("gene_info")
+```
+
+The function accepts any name returned by `available_ncbi_parquet()`, with or
+without the `.parquet` suffix:
+
+```{r lkfields_go}
+ncbi_gene_fields("gene2go")
+```
+
+Column names can also be used to validate a `select()` or `by` argument before
+running a potentially expensive query:
+
+```{r lkfields_check}
+"map_location" %in% ncbi_gene_fields("gene_info")$column_name
+"map_location" %in% ncbi_gene_fields("gene2go")$column_name
 ```
 
 # Identifier mapping with `mapIdsNG()`
@@ -242,13 +261,6 @@ both one-to-many relationships with GeneID: three genes yield hundreds of GO
 annotations and hundreds of transcript/protein pairs.  Joining both resources
 in a single query would produce a Cartesian product; the correct pattern is two
 independent joins.
-
-First, discover what fields each resource provides:
-
-```{r lkfields}
-ncbi_gene_fields("gene2go")[, 1:2]
-ncbi_gene_fields("gene2refseq")[c(1,2,4,6), ]
-```
 
 Start with a local data frame of Entrez IDs:
 
