@@ -90,24 +90,15 @@ tryCatch({
 }, error = function(e) message(conditionMessage(e)))
 ```
 
-For illustration, a small subset covering four human genes on chromosome 17
-is bundled with the package.
-
-```{r lklit}
-litp = dir(system.file("litparquet", package="RNCBIGene"), full.names=TRUE)
-litpop = lapply(litp, arrow::open_dataset)
-ns = basename(litp)
-names(litpop) = ns
-sapply(litpop, nrow)
-```
-
-Find the UniProt identifiers associated with ORMDL3:
+Find the UniProt identifiers associated with ORMDL3 by joining
+`gene2accession` and `gene_refseq_uniprotkb_collab` entirely via the remote
+bucket:
 
 ```{r lkuni}
-pro = litpop[["lit.gene2accession.parquet"]] |>
-   filter(`#tax_id` == 9606, Symbol == "ORMDL3") |>
+pro = open_ncbi_gene("gene2accession", taxid = 9606L) |>
+   filter(Symbol == "ORMDL3") |>
    select(protein_accession.version) |> collect() |> pull() |> setdiff("-")
-litpop[["lit.gene_refseq_uniprotkb_collab.parquet"]] |>
+open_ncbi_gene("gene_refseq_uniprotkb_collab") |>
    filter(NCBI_tax_id == 9606) |>
    filter(`#NCBI_protein_accession` %in% pro) |> collect()
 ```
