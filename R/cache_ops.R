@@ -194,6 +194,32 @@ taxon_cache_info <- function(taxid = NULL,
   as.data.frame(pa[, c("rname", "rpath", "create_time")])
 }
 
+#' remove taxon-specific parquets from BiocFileCache
+#'
+#' Deletes local parquet files cached by \code{cache_by_taxon()}.  After
+#' calling this function, \code{open_ncbi_gene()} will route back to the remote
+#' OSN bucket for the affected taxon.
+#'
+#' @param taxid integer(1) or NULL; when NULL removes cached parquets for all
+#'   taxa
+#' @param cache a \code{BiocFileCache} object
+#' @return invisibly, the names of the removed cache entries
+#' @examples
+#' clear_taxon_cache(9606L)   # removes all human cached parquets
+#' clear_taxon_cache()        # removes everything cached by cache_by_taxon
+#' @export
+clear_taxon_cache <- function(taxid = NULL, cache = .ncbi_cache()) {
+  pattern <- if (is.null(taxid)) "_taxid" else sprintf("_taxid%s", taxid)
+  pa <- BiocFileCache::bfcquery(cache, pattern, field = "rname")
+  if (nrow(pa) == 0L) {
+    message("No cached entries found.")
+    return(invisible(character(0)))
+  }
+  BiocFileCache::bfcremove(cache, pa$rid)
+  message(sprintf("Removed %d cached parquet(s).", nrow(pa)))
+  invisible(pa$rname)
+}
+
 #' download a parquet file from the OSN bucket to local BiocFileCache
 #' @import BiocFileCache
 #' @importFrom utils download.file

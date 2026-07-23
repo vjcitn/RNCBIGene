@@ -91,6 +91,25 @@ test_that("cache_by_taxon force=TRUE overwrites existing entry", {
   })
 })
 
+test_that("clear_taxon_cache removes entries for a specific taxid", {
+  skip_if_offline()
+  with_tmp_cache({
+    cache_by_taxon(10090L, resources = "gene_orthologs", verbose = FALSE)
+    expect_equal(nrow(taxon_cache_info(10090L)), 1L)
+    clear_taxon_cache(10090L)
+    expect_equal(nrow(taxon_cache_info(10090L)), 0L)
+  })
+})
+
+test_that("clear_taxon_cache with NULL removes all taxon entries", {
+  skip_if_offline()
+  with_tmp_cache({
+    cache_by_taxon(10090L, resources = "gene_orthologs", verbose = FALSE)
+    clear_taxon_cache()
+    expect_equal(nrow(taxon_cache_info()), 0L)
+  })
+})
+
 test_that("cached result has no #tax_id column", {
   skip_if_offline()
   with_tmp_cache({
