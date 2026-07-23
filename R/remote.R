@@ -138,34 +138,3 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL, freeze_tag = NU
            dplyr::select(-dplyr::all_of(taxcol))
   tbl
 }
-
-#' use duckdb to query NCBI Gene data in OSN bucket (deprecated)
-#'
-#' Deprecated.  Use \code{\link{open_ncbi_gene}()} instead, which returns a
-#' composable lazy tbl and avoids raw SQL string construction.
-#' @importFrom duckdb duckdb
-#' @param gres name of a gene resource, no suffix
-#' @param qual a SQL fragment appended verbatim to the SELECT; no sanitisation
-#'   is performed
-#' @param tname character(1) view name for the internal query
-#' @param collect logical(1) if TRUE returns a data.frame; default FALSE returns
-#'   lazy tbl
-#' @examples
-#' if (is_online()) {
-#'   # Prefer: open_ncbi_gene("gene2pubmed") |> head(5) |> dplyr::collect()
-#'   remote_gene_query(qual = 'where "#tax_id" = 9606 limit 10') |> dplyr::collect()
-#' }
-#' @export
-remote_gene_query <- function(gres = "gene2pubmed", qual = "limit 5",
-                               tname = basename(tempfile()), collect = FALSE) {
-  .Deprecated("open_ncbi_gene")
-  pmd <- ngurl(gres)
-  con <- ncbi_gene_con()
-  # CREATE OR REPLACE VIEW is idempotent and stores no data, avoiding
-  # table accumulation across repeated calls in a long session.
-  DBI::dbExecute(con, sprintf(
-    'CREATE OR REPLACE VIEW %s AS SELECT * FROM read_parquet(%s) %s',
-    tname, dQuote(pmd, q = FALSE), qual))
-  tbl <- dplyr::tbl(con, tname)
-  if (collect) dplyr::collect(tbl) else tbl
-}

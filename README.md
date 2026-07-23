@@ -24,25 +24,14 @@ Code is available to transfer resources to local cache, but the primary
 use cases are expected to be solved using DuckDb over HTTPS.
 
 ```
-> remote_gene_query(gres="gene_info", qual='where "#tax_id" = 9606 limit 10')
-# A query:  ?? x 16  
-# Database: DuckDB 1.5.4 [vincentcarey@Darwin 24.6.0:R 4.6.1/:memory:]
-   `#tax_id` GeneID Symbol LocusTag Synonyms     dbXrefs chromosome map_location
-       <dbl>  <dbl> <chr>  <chr>    <chr>        <chr>   <chr>      <chr>       
- 1      9606   4038 LRP4   -        CLSS|CMS17|... MIM:60... 11         11p11.2     
- 2      9606   4040 LRP6   -        ADCAD2|EVR8... MIM:60... 12         12p13.2     
- 3      9606   4041 LRP5   -        BMND1|EVR1|... MIM:60... 11         11q13.2     
- 4      9606   4043 LRPAP1 -        A2MRAP|A2RA... MIM:10... 4          4p16.3      
- 5      9606   4045 LSAMP  -        IGLON3|LAMP  MIM:60... 3          3q13.31     
- 6      9606   4046 LSP1   -        WP34|pp52    MIM:15... 11         11p15.5     
- 7      9606   4047 LSS    -        APMR4|CTRCT... MIM:60... 21         21q22.3     
- 8      9606   4048 LTA4H  -        -            MIM:15... 12         12q23.1     
- 9      9606   4049 LTA    -        LT|TNFB|TNF... MIM:15... 6          6p21.33     
-10      9606   4050 LTB    -        TNFC|TNFSF3... MIM:60... 6          6p21.33     
-# # 8 more variables: description <chr>, type_of_gene <chr>,
-#   Symbol_from_nomenclature_authority <chr>,
-#   Full_name_from_nomenclature_authority <chr>, Nomenclature_status <chr>,
-#   Other_designations <chr>, Modification_date <dbl>, Feature_type <chr>
+> open_ncbi_gene("gene_info", taxid=9606L) |> head(10) |> dplyr::collect()
+# A tibble: 10 x 15
+   GeneID Symbol LocusTag Synonyms     dbXrefs chromosome map_location
+    <dbl> <chr>  <chr>    <chr>        <chr>   <chr>      <chr>       
+ 1   4038 LRP4   -        CLSS|CMS17|... MIM:60... 11         11p11.2     
+ 2   4040 LRP6   -        ADCAD2|EVR8... MIM:60... 12         12p13.2     
+ 3   4041 LRP5   -        BMND1|EVR1|... MIM:60... 11         11q13.2     
+ ...
 ```
 
 ## Annotation in a tidyverse style
