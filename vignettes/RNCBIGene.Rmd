@@ -234,6 +234,41 @@ tse <- tse |> dplyr::mutate(
 head(table(SummarizedExperiment::rowData(tse)$map_location))
 ```
 
+# Querying non-human organisms
+
+Because all NCBI Gene annotation for all organisms lives in the same parquet
+files, switching species is simply a matter of changing `taxid`.  Here we look
+up Ensembl gene and transcript identifiers for the mouse (_Mus musculus_,
+taxid 10090) gene _Lilrb4a_.
+
+A quick symbol-to-Ensembl-gene lookup:
+
+```{r lkmouse1}
+mapIdsNG(keys = "Lilrb4a", keytype = "Symbol", column = "Ensembl",
+         taxid = 10090L)
+```
+
+For the full transcript-level picture we join `gene_info` (filtered to the
+symbol) against `gene2ensembl` entirely within duckdb — both lazy tbls share
+the same connection, so the join is pushed down before any data is collected:
+
+```{r lkmouse2}
+gene_info_mouse <- open_ncbi_gene("gene_info", taxid = 10090L) |>
+  dplyr::filter(.data[["Symbol"]] == "Lilrb4a") |>
+  dplyr::select(GeneID, Symbol)
+
+open_ncbi_gene("gene2ensembl", taxid = 10090L) |>
+  dplyr::inner_join(gene_info_mouse, by = "GeneID") |>
+  dplyr::select(Symbol, Ensembl_gene_identifier,
+                Ensembl_rna_identifier, Ensembl_protein_identifier) |>
+  dplyr::collect()
+```
+
+The result reveals two distinct Ensembl gene models for _Lilrb4a_ — something
+that a two-step approach (Symbol → one gene ID → transcripts) would have
+missed.  Joining directly on `GeneID` returns all Ensembl records for the gene
+in a single query.
+
 # Joining local data to remote annotation with `join_ncbi_gene()`
 
 `join_ncbi_gene()` uploads a local data frame to the duckdb session as a
