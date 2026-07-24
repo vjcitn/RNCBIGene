@@ -297,6 +297,40 @@ freeze_taxon_cache <- function(taxid, tag,
   invisible(paths)
 }
 
+#' list annotation resources available for offline use
+#'
+#' Reads the local BiocFileCache without any network access and returns a
+#' tidy summary of every resource that \code{open_ncbi_gene()} can serve
+#' from disk.  Use this to see what is available before going offline or to
+#' confirm that \code{cache_by_taxon()} completed successfully.
+#'
+#' @param cache a \code{BiocFileCache} object
+#' @return data.frame with columns \code{resource}, \code{taxid},
+#'   \code{frozen}, \code{tag} (NA for live entries), and \code{rpath}
+#' @examples
+#' cached_ncbi_resources()
+#' @export
+cached_ncbi_resources <- function(cache = .ncbi_cache()) {
+  pa <- BiocFileCache::bfcquery(cache, "_taxid", field = "rname")
+  if (nrow(pa) == 0L) {
+    message("No resources cached. Run cache_by_taxon() to cache resources locally.")
+    return(invisible(
+      data.frame(resource=character(), taxid=integer(),
+                 frozen=logical(), tag=character(), rpath=character(),
+                 stringsAsFactors=FALSE)
+    ))
+  }
+  rnames <- pa$rname
+  frozen <- grepl("_frozen_", rnames)
+  taxid  <- as.integer(sub(".*_taxid([0-9]+).*", "\\1", rnames))
+  res    <- sub("_taxid[0-9]+.*\\.parquet$", "", rnames)
+  tag    <- ifelse(frozen,
+                   sub(".*_frozen_([^.]+)\\.parquet$", "\\1", rnames),
+                   NA_character_)
+  data.frame(resource = res, taxid = taxid, frozen = frozen, tag = tag,
+             rpath = pa$rpath, stringsAsFactors = FALSE)
+}
+
 #' download a parquet file from the OSN bucket to local BiocFileCache
 #' @import BiocFileCache
 #' @importFrom utils download.file

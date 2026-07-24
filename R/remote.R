@@ -117,17 +117,23 @@ ncbi_gene_fields <- function(resource = "gene_info") {
 #' @export
 open_ncbi_gene <- function(resource = "gene_info", taxid = NULL, freeze_tag = NULL) {
   gres  <- sub("\\.parquet$", "", resource)
-  avail <- .ncbi_resource_names()
-  if (!gres %in% avail)
-    stop(sprintf(
-      "'%s' is not an available resource.\nCall available_ncbi_parquet() to see options.",
-      gres))
   con   <- ncbi_gene_con()
 
+  # Check local cache FIRST -- works offline.
+  # Network validation is only needed when we must hit the remote bucket.
   local <- if (!is.null(freeze_tag))
     .frozen_parquet_path(gres, taxid, freeze_tag)   # stops if not found
   else
     .cached_parquet_path(gres, taxid)
+
+  if (is.null(local)) {
+    # Going remote: validate resource name against the live bucket listing.
+    avail <- .ncbi_resource_names()
+    if (!gres %in% avail)
+      stop(sprintf(
+        "'%s' is not an available resource.\nCall available_ncbi_parquet() to see options.",
+        gres))
+  }
 
   if (!is.null(local)) {
     vname  <- paste0("v_local_", gsub("[^A-Za-z0-9]", "_", gres), "_", taxid)

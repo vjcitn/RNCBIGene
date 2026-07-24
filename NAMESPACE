@@ -2,6 +2,7 @@
 
 export(available_ncbi_parquet)
 export(cache_by_taxon)
+export(cached_ncbi_resources)
 export(clear_taxon_cache)
 export(freeze_taxon_cache)
 export(is_online)
