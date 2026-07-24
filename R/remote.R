@@ -28,12 +28,26 @@ ngurl <- function(gres = "gene2pubmed") {
 }
 
 # Return the local BiocFileCache path for (gres, taxid) if it exists, else NULL.
+# Prefers a live cache entry; falls back to any frozen snapshot with a message.
 .cached_parquet_path <- function(gres, taxid) {
   if (is.null(taxid)) return(NULL)
   key <- sprintf("%s_taxid%s.parquet", gres, taxid)
   pa  <- BiocFileCache::bfcquery(.ncbi_cache(), key, field = "rname")
-  pa  <- pa[!grepl("_frozen_", pa$rname), ]
-  if (nrow(pa) == 1L) pa$rpath else NULL
+
+  live <- pa[!grepl("_frozen_", pa$rname), ]
+  if (nrow(live) >= 1L) return(live$rpath[1L])
+
+  frozen <- pa[grepl("_frozen_", pa$rname), ]
+  if (nrow(frozen) >= 1L) {
+    tag <- sub(sprintf(".*_taxid%s_frozen_([^.]+)\\.parquet$", taxid),
+               "\\1", frozen$rname[1L])
+    message(sprintf(
+      "No live cache for '%s' taxid %s; using frozen snapshot '%s'. ",
+      "Run cache_by_taxon(%s) to refresh.", gres, taxid, tag, taxid))
+    return(frozen$rpath[1L])
+  }
+
+  NULL
 }
 
 # Return the path of a frozen snapshot, or stop() if not found.
@@ -128,7 +142,16 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL, freeze_tag = NU
 
   if (is.null(local)) {
     # Going remote: validate resource name against the live bucket listing.
-    avail <- .ncbi_resource_names()
+    avail <- tryCatch(
+      .ncbi_resource_names(),
+      error = function(e) {
+        stop(sprintf(paste0(
+          "No local cache for '%s' taxid %s and the OSN bucket is unreachable.\n",
+          "Call cache_by_taxon(%s) when online to enable offline access.\n",
+          "Use cached_ncbi_resources() to see what is available locally."),
+          gres, taxid, taxid), call. = FALSE)
+      }
+    )
     if (!gres %in% avail)
       stop(sprintf(
         "'%s' is not an available resource.\nCall available_ncbi_parquet() to see options.",
