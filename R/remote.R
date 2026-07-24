@@ -29,10 +29,13 @@ ngurl <- function(gres = "gene2pubmed") {
 
 # Return the local BiocFileCache path for (gres, taxid) if it exists, else NULL.
 # Prefers a live cache entry; falls back to any frozen snapshot with a message.
+# Query uses the prefix WITHOUT .parquet so it matches both
+#   "gene_info_taxid9606.parquet"           (live)
+#   "gene_info_taxid9606_frozen_TAG.parquet" (frozen)
 .cached_parquet_path <- function(gres, taxid) {
   if (is.null(taxid)) return(NULL)
-  key <- sprintf("%s_taxid%s.parquet", gres, taxid)
-  pa  <- BiocFileCache::bfcquery(.ncbi_cache(), key, field = "rname")
+  prefix <- sprintf("%s_taxid%s", gres, taxid)
+  pa     <- BiocFileCache::bfcquery(.ncbi_cache(), prefix, field = "rname")
 
   live <- pa[!grepl("_frozen_", pa$rname), ]
   if (nrow(live) >= 1L) return(live$rpath[1L])
@@ -42,8 +45,8 @@ ngurl <- function(gres = "gene2pubmed") {
     tag <- sub(sprintf(".*_taxid%s_frozen_([^.]+)\\.parquet$", taxid),
                "\\1", frozen$rname[1L])
     message(sprintf(
-      "No live cache for '%s' taxid %s; using frozen snapshot '%s'. ",
-      "Run cache_by_taxon(%s) to refresh.", gres, taxid, tag, taxid))
+      "No live cache for '%s' taxid %s; using frozen snapshot '%s'. Run cache_by_taxon(%s) to refresh.",
+      gres, taxid, tag, taxid))
     return(frozen$rpath[1L])
   }
 
