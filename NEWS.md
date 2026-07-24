@@ -1,3 +1,18 @@
+# RNCBIGene 0.2.0
+
+* `open_ncbi_gene()` now checks BiocFileCache before any network call.
+  Users with a cached taxon can work fully offline -- `available_ncbi_parquet()`
+  is only called when the remote bucket is actually needed.
+* `cached_ncbi_resources()`: new offline-safe function that reads BiocFileCache
+  directly and returns a tidy data frame of available resources with columns
+  `resource`, `taxid`, `frozen`, `tag`, and `rpath`.
+* `_pkgdown.yml` gains an explicit `reference:` block grouping functions by
+  purpose (Remote queries, Bucket metadata, Local caching, Session management).
+* `NEWS.md` added (Bioconductor requirement).
+* `inst/preps/make_provenance.R`: `system("curl -sI ...")` replaced with base R
+  `curlGetHeaders()` for cross-platform portability.
+* `.gitignore` extended with standard R development detritus.
+
 # RNCBIGene 0.1.9
 
 * Golden-query validation: `tests/testthat/test-golden.R` fetches
