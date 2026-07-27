@@ -306,6 +306,91 @@ Each result shares the `GeneID` key with the original `local_ids` data frame
 and can be used independently or merged with `dplyr::left_join()` after
 collecting, depending on the downstream analysis.
 
+# Migrating from AnnotationDbi::select()
+
+A common pattern in Bioconductor workflows is:
+
+```r
+AnnotationDbi::select(
+  org.Hs.eg.db,
+  keys    = c("BRCA1", "ORMDL3", "GSDMB"),
+  keytype = "SYMBOL",
+  columns = c("ENSEMBLTRANS", "GENENAME", "GO", "PMID")
+)
+```
+
+The column names map to NCBI resources as follows:
+
+| AnnotationDbi column | NCBI resource | column in RNCBIGene |
+|----------------------|---------------|---------------------|
+| `GENENAME`           | `gene_info`   | `description`       |
+| `ENSEMBLTRANS`       | `gene2ensembl`| `Ensembl_rna_identifier` |
+| `GO`                 | `gene2go`     | `GO_ID`             |
+| `PMID`               | `gene2pubmed` | `PubMed_ID`         |
+
+`AnnotationDbi::select()` returns a single flat table that Cartesian-joins all
+requested columns.  For BRCA1 alone, `gene2pubmed` contributes thousands of
+PubMed IDs; cross-joining these with hundreds of GO terms per gene produces an
+unwieldy table.  The recommended RNCBIGene pattern collects each annotation type
+separately (linked by `GeneID`) and lets the analyst join only what they need.
+
+```{r lkadbi_keys}
+keys <- c("BRCA1", "ORMDL3", "GSDMB")
+
+# Step 1: GeneID + full gene name (GENENAME)
+gi <- open_ncbi_gene("gene_info", taxid = 9606L) |>
+  filter(Symbol %in% keys) |>
+  select(Symbol, GeneID, description) |>
+  collect()
+gi
+```
+
+```{r lkadbi_ids}
+ids <- gi$GeneID
+```
+
+```{r lkadbi_ens}
+# ENSEMBLTRANS: one row per gene-transcript pair
+ens <- open_ncbi_gene("gene2ensembl", taxid = 9606L) |>
+  filter(GeneID %in% ids) |>
+  select(GeneID, Ensembl_rna_identifier) |>
+  collect()
+nrow(ens)
+head(ens)
+```
+
+```{r lkadbi_go}
+# GO: one row per gene-term pair
+go <- open_ncbi_gene("gene2go", taxid = 9606L) |>
+  filter(GeneID %in% ids) |>
+  select(GeneID, GO_ID, Evidence, Category) |>
+  collect()
+nrow(go)
+head(go)
+```
+
+```{r lkadbi_pm}
+# PMID: one row per gene-publication pair (BRCA1 alone has thousands)
+pm <- open_ncbi_gene("gene2pubmed", taxid = 9606L) |>
+  filter(GeneID %in% ids) |>
+  select(GeneID, PubMed_ID) |>
+  collect()
+nrow(pm)
+head(pm)
+```
+
+A Symbol-keyed join of `gi` and `ens` gives a tidy transcript table:
+
+```{r lkadbi_join}
+gi |>
+  left_join(ens, by = "GeneID") |>
+  select(Symbol, description, Ensembl_rna_identifier)
+```
+
+GO and PMID are kept as separate data frames; merging them independently with
+the gene table avoids the Cartesian explosion that occurs when all four are
+joined in a single step.
+
 # Caching for offline or high-performance use
 
 All queries above route to the OSN bucket on every call.  For a species you
