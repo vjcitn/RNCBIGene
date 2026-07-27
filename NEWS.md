@@ -1,3 +1,12 @@
+# RNCBIGene 0.2.1
+
+* Fix offline access: `.cached_parquet_path()` now queries BiocFileCache with
+  the prefix `"<resource>_taxid<id>"` (no `.parquet` suffix) so that frozen
+  snapshots (`"..._frozen_TAG.parquet"`) are correctly found via substring
+  match.  Previously the literal `.parquet` suffix blocked substring matching
+  against frozen entry names, causing `open_ncbi_gene()` to fail offline even
+  when a frozen snapshot was present.
+
 # RNCBIGene 0.2.0
 
 * `open_ncbi_gene()` now checks BiocFileCache before any network call.
