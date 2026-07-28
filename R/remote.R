@@ -148,11 +148,17 @@ open_ncbi_gene <- function(resource = "gene_info", taxid = NULL, freeze_tag = NU
     avail <- tryCatch(
       .ncbi_resource_names(),
       error = function(e) {
+        if (is.null(taxid))
+          stop(paste0(
+            "The OSN bucket is unreachable and no taxid was specified.\n",
+            "Specify taxid= to serve from a local cache (e.g. taxid=9606L for human).\n",
+            "Use cached_ncbi_resources() to see what is available locally."),
+            call. = FALSE)
         stop(sprintf(paste0(
           "No local cache for '%s' taxid %s and the OSN bucket is unreachable.\n",
           "Call cache_by_taxon(%s) when online to enable offline access.\n",
           "Use cached_ncbi_resources() to see what is available locally."),
-          gres, taxid, taxid), call. = FALSE)
+          gres, as.character(taxid), as.character(taxid)), call. = FALSE)
       }
     )
     if (!gres %in% avail)
