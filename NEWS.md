@@ -1,3 +1,11 @@
+# RNCBIGene 0.2.2
+
+* Fix blank error message when `open_ncbi_gene()` is called without `taxid`
+  while offline.  `sprintf(..., NULL)` produces `character(0)`, causing
+  `stop()` to emit `"Error: "` with no text.  Now uses `as.character(taxid)`
+  and branches on `is.null(taxid)` to give actionable guidance:
+  "Specify taxid= to serve from a local cache".
+
 # RNCBIGene 0.2.1
 
 * Fix offline access: `.cached_parquet_path()` now queries BiocFileCache with
